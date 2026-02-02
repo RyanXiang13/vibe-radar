@@ -215,8 +215,8 @@ function App() {
               <div className="flex justify-between mb-1">
                 <h3 className={`font-bold line-clamp-1 ${selectedCafe?.id === c.id ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>{c.name}</h3>
                 <div className="flex items-center gap-1">
-                  {c.distance_km && <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{c.distance_km} km</span>}
-                  {c.rating && <span className="text-xs font-bold bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded h-fit">★{c.rating}</span>}
+                  {c.distance_km && <span className="text-xs font-bold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 px-2 py-1 rounded h-fit">{c.distance_km} km</span>}
+                  {c.rating && <span className="text-xs font-bold bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded h-fit">★ {c.rating}</span>}
                 </div>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-2 leading-relaxed">{c.vibes?.summary}</p>
