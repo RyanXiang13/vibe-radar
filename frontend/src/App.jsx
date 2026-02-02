@@ -10,13 +10,44 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 const GOOGLE_KEY = import.meta.env.VITE_GMAPS_KEY;
 
 // --- CONFIG: COLOR SYSTEM ---
+// --- CONFIG: COLOR SYSTEM & SORTING ---
 const TAG_CONFIG = {
-  quiet: { label: 'Quiet', icon: <Volume2 size={12} />, color: 'emerald', bg: 'bg-emerald-100', text: 'text-emerald-700', darkBg: 'dark:bg-emerald-900/40', darkText: 'dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800' },
-  power: { label: 'Plugs', icon: <Plug size={12} />, color: 'amber', bg: 'bg-amber-100', text: 'text-amber-700', darkBg: 'dark:bg-amber-900/40', darkText: 'dark:text-amber-400', border: 'border-amber-200 dark:border-amber-800' },
-  late: { label: 'Late', icon: <Moon size={12} />, color: 'indigo', bg: 'bg-indigo-100', text: 'text-indigo-700', darkBg: 'dark:bg-indigo-900/40', darkText: 'dark:text-indigo-400', border: 'border-indigo-200 dark:border-indigo-800' },
-  food: { label: 'Food', icon: <Utensils size={12} />, color: 'orange', bg: 'bg-orange-100', text: 'text-orange-700', darkBg: 'dark:bg-orange-900/40', darkText: 'dark:text-orange-400', border: 'border-orange-200 dark:border-orange-800' },
-  wifi: { label: 'Wifi', icon: <Wifi size={12} />, color: 'blue', bg: 'bg-blue-100', text: 'text-blue-700', darkBg: 'dark:bg-blue-900/40', darkText: 'dark:text-blue-400', border: 'border-blue-200 dark:border-blue-800' },
-  group: { label: 'Groups', icon: <Users size={12} />, color: 'purple', bg: 'bg-purple-100', text: 'text-purple-700', darkBg: 'dark:bg-purple-900/40', darkText: 'dark:text-purple-400', border: 'border-purple-200 dark:border-purple-800' },
+  quiet: {
+    label: 'Quiet', icon: <Volume2 size={12} />,
+    color: 'emerald', bg: 'bg-emerald-100', text: 'text-emerald-700', darkBg: 'dark:bg-emerald-900/40', darkText: 'dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800',
+    levels: { 'Quiet': 3, 'Moderate': 2, 'Loud': 1 }, // Higher = Quieter (Better)
+    map: { 'Quiet': 'Silent', 'Moderate': 'Moderate', 'Loud': 'Loud' }
+  },
+  power: {
+    label: 'Plugs', icon: <Plug size={12} />,
+    color: 'amber', bg: 'bg-amber-100', text: 'text-amber-700', darkBg: 'dark:bg-amber-900/40', darkText: 'dark:text-amber-400', border: 'border-amber-200 dark:border-amber-800',
+    levels: { 'Many': 3, 'Scarce': 2, 'None': 1 }, // Higher = More Plugs
+    map: { 'Many': 'Many', 'Scarce': 'Moderate', 'None': 'Little/None' }
+  },
+  late: {
+    label: 'Late', icon: <Moon size={12} />,
+    color: 'indigo', bg: 'bg-indigo-100', text: 'text-indigo-700', darkBg: 'dark:bg-indigo-900/40', darkText: 'dark:text-indigo-400', border: 'border-indigo-200 dark:border-indigo-800',
+    levels: { true: 1, false: 0 },
+    map: { true: 'Open Late' }
+  },
+  food: {
+    label: 'Food', icon: <Utensils size={12} />,
+    color: 'orange', bg: 'bg-orange-100', text: 'text-orange-700', darkBg: 'dark:bg-orange-900/40', darkText: 'dark:text-orange-400', border: 'border-orange-200 dark:border-orange-800',
+    levels: { 'Full Meals': 3, 'Pastries': 2, 'Coffee Only': 1 }, // Proxy for "Great" -> "Moderate"
+    map: { 'Full Meals': 'Great Food', 'Pastries': 'Good Food', 'Coffee Only': 'Mod. Food' }
+  },
+  wifi: {
+    label: 'Wifi', icon: <Wifi size={12} />,
+    color: 'blue', bg: 'bg-blue-100', text: 'text-blue-700', darkBg: 'dark:bg-blue-900/40', darkText: 'dark:text-blue-400', border: 'border-blue-200 dark:border-blue-800',
+    levels: { 'Fast': 3, 'Spotty': 2, 'None': 1 },
+    map: { 'Fast': 'Good Wifi', 'Spotty': 'Mod. Wifi', 'None': 'Poor Wifi' }
+  },
+  group: {
+    label: 'Groups', icon: <Users size={12} />,
+    color: 'purple', bg: 'bg-purple-100', text: 'text-purple-700', darkBg: 'dark:bg-purple-900/40', darkText: 'dark:text-purple-400', border: 'border-purple-200 dark:border-purple-800',
+    levels: { 'Good for Groups': 3, 'Best for Pairs': 2, 'Solo Only': 1 }, // Higher = Bigger Groups
+    map: { 'Good for Groups': '> 5 ppl', 'Best for Pairs': '3-4 ppl', 'Solo Only': '1-2 ppl' }
+  },
 };
 
 function App() {
@@ -103,7 +134,7 @@ function App() {
   };
 
   const filtered = useMemo(() => {
-    return cafes.filter(c => {
+    let result = cafes.filter(c => {
       if (!c.vibes) return false;
       // Purpose Logic
       if (activePurpose !== 'all') {
@@ -115,17 +146,43 @@ function App() {
         };
         if (purposeMap[activePurpose] && !purposeMap[activePurpose](c.vibes)) return false;
       }
-      // Preferences Logic
-      for (const pref of activePreferences) {
-        if (pref === 'quiet' && c.vibes.noise_level !== 'Quiet') return false;
-        if (pref === 'power' && c.vibes.outlets_level !== 'Many') return false;
-        if (pref === 'late' && !c.vibes.is_late_night) return false;
-        if (pref === 'food' && c.vibes.food_type !== 'Full Meals') return false;
-        if (pref === 'wifi' && c.vibes.wifi_quality !== 'Fast') return false;
-      }
       return true;
     });
+
+    // --- SORTING LOGIC ---
+    // If a preference is active, sort by it. If multiple, sort by the LAST selected one (primary sort).
+    if (activePreferences.length > 0) {
+      const primaryPref = activePreferences[activePreferences.length - 1]; // Sort by most recent click
+      const config = TAG_CONFIG[primaryPref];
+
+      if (config && config.levels) {
+        result.sort((a, b) => {
+          // Get Raw Values
+          const valA = a.vibes?.[getVibeKey(primaryPref)];
+          const valB = b.vibes?.[getVibeKey(primaryPref)];
+
+          // Get Score (Default to 0)
+          const scoreA = config.levels[valA] || 0;
+          const scoreB = config.levels[valB] || 0;
+
+          return scoreB - scoreA; // Descending (Best first)
+        });
+      }
+    }
+
+    return result;
   }, [cafes, activePurpose, activePreferences]);
+
+  // Helper to map Pref ID to DB Column Key
+  const getVibeKey = (id) => {
+    if (id === 'quiet') return 'noise_level';
+    if (id === 'power') return 'outlets_level';
+    if (id === 'late') return 'is_late_night';
+    if (id === 'food') return 'food_type';
+    if (id === 'wifi') return 'wifi_quality';
+    if (id === 'group') return 'group_suitability';
+    return id;
+  };
 
   const flyToCafe = (c) => { setSelectedCafe(c); mapRef.current?.flyTo({ center: [c.lng, c.lat], zoom: 16 }); };
   const getMapsUrl = (c) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.name + " " + c.address)}`;
@@ -222,9 +279,19 @@ function App() {
               <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-2 leading-relaxed">{c.vibes?.summary}</p>
 
               <div className="flex flex-wrap gap-2 mt-2">
-                {c.vibes?.is_late_night && <MiniTag config={TAG_CONFIG.late} />}
-                {c.vibes?.outlets_level === 'Many' && <MiniTag config={TAG_CONFIG.power} />}
-                {c.vibes?.group_suitability === 'Good for Groups' && <MiniTag config={TAG_CONFIG.group} />}
+                {Object.entries(TAG_CONFIG).map(([key, config]) => {
+                  const rawVal = c.vibes?.[getVibeKey(key)];
+                  if (!rawVal) return null;
+
+                  // Show all relevant tags except "None" type values
+                  let label = config.map?.[rawVal] || rawVal;
+                  if (rawVal === true) label = config.map?.[true];
+                  if (rawVal === false || rawVal === 'None' || rawVal === 'Little to none' || rawVal === 'Coffee Only' && key === 'food') return null;
+
+                  return (
+                    <MiniTag key={key} config={config} label={label} />
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -324,9 +391,9 @@ function App() {
 }
 
 // Sub-Components
-const MiniTag = ({ config }) => (
+const MiniTag = ({ config, label }) => (
   <span className={`px-1.5 py-0.5 rounded flex gap-1 items-center text-[10px] font-bold ${config.bg} ${config.text} ${config.darkBg} ${config.darkText} border ${config.border}`}>
-    {config.icon} {config.label}
+    {config.icon} {label || config.label}
   </span>
 );
 
