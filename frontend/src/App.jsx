@@ -20,7 +20,12 @@ const TAG_CONFIG = {
 };
 
 function App() {
-  const [viewState, setViewState] = useState({ latitude: 43.4643, longitude: -80.5204, zoom: 13 });
+  // --- STATE ---
+  // Default: Downtown Toronto
+  const DEFAULT_LOC = { lat: 43.6532, lng: -79.3832 };
+
+  const [viewState, setViewState] = useState({ latitude: DEFAULT_LOC.lat, longitude: DEFAULT_LOC.lng, zoom: 13 });
+  const [userLocation, setUserLocation] = useState({ latitude: DEFAULT_LOC.lat, longitude: DEFAULT_LOC.lng });
   const [cafes, setCafes] = useState([]);
   const [selectedCafe, setSelectedCafe] = useState(null);
 
@@ -33,8 +38,12 @@ function App() {
   const searchInputRef = useRef(null);
   const mapRef = useRef(null);
 
+  // Load cafes based on the PIN location (User's "Home Base"), not just the camera center
+  // Actually, typically we want to load based on where the user is looking, but for "Vibe Radar" 
+  // usually it searches around the point of interest. 
+  // Let's stick to loading around the USER LOCATION (the pin).
   const loadCafes = async (lat, lng) => { setCafes(await fetchCafes(lat, lng)); };
-  useEffect(() => { loadCafes(viewState.latitude, viewState.longitude); }, []);
+  useEffect(() => { loadCafes(userLocation.latitude, userLocation.longitude); }, []);
 
   // Force HTML class toggle for Tailwind Dark Mode
   useEffect(() => {
@@ -61,7 +70,10 @@ function App() {
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
 
+        // Update BOTH the camera and the "You are Here" pin
         setViewState({ latitude: lat, longitude: lng, zoom: 14 });
+        setUserLocation({ latitude: lat, longitude: lng });
+
         loadCafes(lat, lng);
         setSelectedCafe(null);
       });
@@ -283,8 +295,8 @@ function App() {
           mapboxAccessToken={MAPBOX_TOKEN}>
           <NavigationControl position="bottom-right" showCompass={false} />
 
-          {/* USER LOCATION PIN */}
-          <Marker latitude={viewState.latitude} longitude={viewState.longitude}>
+          {/* USER LOCATION PIN (Now bound to userLocation, not viewState) */}
+          <Marker latitude={userLocation.latitude} longitude={userLocation.longitude}>
             <div className="relative flex items-center justify-center w-8 h-8 group">
               <span className="absolute w-8 h-8 bg-blue-500 rounded-full opacity-30 animate-ping"></span>
               <div className="relative w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-xl z-20"></div>
