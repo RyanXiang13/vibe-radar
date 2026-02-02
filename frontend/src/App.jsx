@@ -6,6 +6,8 @@ import { fetchCafes } from './api';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+// Grab the key from Vercel env variables
+const GOOGLE_KEY = import.meta.env.VITE_GMAPS_KEY;
 
 // --- CONFIG: COLOR SYSTEM ---
 const TAG_CONFIG = {
@@ -43,17 +45,42 @@ function App() {
     }
   }, [isDarkMode]);
 
+  // --- FIX START: ROBUST GOOGLE MAPS LOADER ---
   useEffect(() => {
-    if (!window.google) return;
-    const ac = new window.google.maps.places.Autocomplete(searchInputRef.current, { types: ['geocode'], fields: ['geometry'] });
-    ac.addListener('place_changed', () => {
-      const place = ac.getPlace();
-      if (!place.geometry) return;
-      const lat = place.geometry.location.lat(), lng = place.geometry.location.lng();
-      setViewState({ latitude: lat, longitude: lng, zoom: 14 });
-      loadCafes(lat, lng); setSelectedCafe(null);
-    });
+    const initAutocomplete = () => {
+      if (!searchInputRef.current || !window.google) return;
+
+      const ac = new window.google.maps.places.Autocomplete(searchInputRef.current, {
+        types: ['geocode'],
+        fields: ['geometry']
+      });
+
+      ac.addListener('place_changed', () => {
+        const place = ac.getPlace();
+        if (!place.geometry) return;
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+
+        setViewState({ latitude: lat, longitude: lng, zoom: 14 });
+        loadCafes(lat, lng);
+        setSelectedCafe(null);
+      });
+    };
+
+    if (!window.google) {
+      // Create script tag ONLY if it's missing
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_KEY}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = initAutocomplete; // Run our setup once loaded
+      document.head.appendChild(script);
+    } else {
+      // If it's already there (e.g. from a previous navigation), just run setup
+      initAutocomplete();
+    }
   }, []);
+  // --- FIX END ---
 
   const togglePreference = (id) => {
     if (activePreferences.includes(id)) {
