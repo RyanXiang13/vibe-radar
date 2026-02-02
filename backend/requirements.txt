@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+geoalchemy2
+requests
+python-dotenv
+google-genai
+openai
+googlemaps
