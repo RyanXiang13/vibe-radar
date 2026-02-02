@@ -202,7 +202,10 @@ function App() {
 
               <div className="flex justify-between mb-1">
                 <h3 className={`font-bold line-clamp-1 ${selectedCafe?.id === c.id ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>{c.name}</h3>
-                {c.rating && <span className="text-xs font-bold bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded h-fit">★{c.rating}</span>}
+                <div className="flex items-center gap-1">
+                  {c.distance_km && <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{c.distance_km} km</span>}
+                  {c.rating && <span className="text-xs font-bold bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded h-fit">★{c.rating}</span>}
+                </div>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-2 leading-relaxed">{c.vibes?.summary}</p>
 
@@ -229,7 +232,14 @@ function App() {
 
             <div className="p-6 pb-20">
               <h2 className="text-3xl font-black mb-1 text-slate-900 dark:text-white leading-tight">{selectedCafe.name}</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 font-medium">{selectedCafe.address}</p>
+              <div className="flex justify-between items-start mb-6">
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{selectedCafe.address}</p>
+                {selectedCafe.distance_km && (
+                  <span className="shrink-0 text-xs font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-md">
+                    {selectedCafe.distance_km} km away
+                  </span>
+                )}
+              </div>
 
               {selectedCafe.vibes?.best_for && (
                 <div className="flex flex-wrap gap-2 mb-6">
@@ -272,6 +282,18 @@ function App() {
           mapStyle={isDarkMode ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
           mapboxAccessToken={MAPBOX_TOKEN}>
           <NavigationControl position="bottom-right" showCompass={false} />
+
+          {/* USER LOCATION PIN */}
+          <Marker latitude={viewState.latitude} longitude={viewState.longitude}>
+            <div className="relative flex items-center justify-center w-8 h-8 group">
+              <span className="absolute w-8 h-8 bg-blue-500 rounded-full opacity-30 animate-ping"></span>
+              <div className="relative w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-xl z-20"></div>
+              <div className="absolute -top-8 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-30">
+                You are here
+              </div>
+            </div>
+          </Marker>
+
           {filtered.map(c => (
             <Marker key={c.id} latitude={c.lat} longitude={c.lng} onClick={e => { e.originalEvent.stopPropagation(); flyToCafe(c) }}>
               <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer
