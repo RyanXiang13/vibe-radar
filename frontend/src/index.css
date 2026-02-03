@@ -25,3 +25,34 @@
   scrollbar-width: none;
   /* Firefox */
 }
+
+/* Custom Animation for Rainbow Gradient */
+@layer utilities {
+  .animate-gradient-xy {
+    animation: gradient-xy 3s ease infinite;
+    background-size: 200% 200%;
+  }
+  
+  .animate-gradient-x {
+      animation: gradient-x 3s ease infinite;
+      background-size: 200% 200%;
+  }
+}
+
+@keyframes gradient-xy {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes gradient-x {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}

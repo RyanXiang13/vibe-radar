@@ -290,7 +290,7 @@ function App() {
                 ${selectedCafe?.id === c.id
                     ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500 ring-1 ring-indigo-500'
                     : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800'}
-                ${isHighMatch ? 'ring-2 ring-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-[length:200%_200%] animate-gradient-xy' : ''}
+                ${isHighMatch ? 'ring-2 ring-transparent bg-gradient-to-r from-pink-100 via-purple-100 to-indigo-100 dark:from-pink-900/30 dark:via-purple-900/30 dark:to-indigo-900/30 bg-[length:400%_400%] animate-gradient-xy' : ''}
                   `}>
 
                 {/* Rainbow Border Pseudo-element fix (if ring-transparent doesn't show gradient) -> Actually, for borders, we often use a wrapper. 
@@ -421,13 +421,20 @@ function App() {
 
             return (
               <Marker key={c.id} latitude={c.lat} longitude={c.lng} onClick={e => { e.originalEvent.stopPropagation(); flyToCafe(c) }}>
-                <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer
-                ${selectedCafe?.id === c.id
-                    ? 'bg-indigo-600 border-white text-white scale-110'
-                    : 'bg-white dark:bg-slate-800 border-indigo-100 dark:border-slate-600 text-indigo-600 dark:text-indigo-400'}
-                  ${isHighMatch ? 'ring-4 ring-purple-400 ring-opacity-50 border-purple-500' : ''}
-              `}>
-                  <Coffee size={14} />
+                <div className="relative flex items-center justify-center">
+                  {/* RAINBOW HALO for High Matches */}
+                  {isHighMatch && (
+                    <div className="absolute -inset-1.5 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-[length:200%_200%] animate-gradient-xy opacity-80 blur-[1px]" />
+                  )}
+
+                  <div className={`relative w-8 h-8 rounded-full border-2 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer z-10
+                  ${selectedCafe?.id === c.id
+                      ? 'bg-indigo-600 border-white text-white scale-110'
+                      : 'bg-white dark:bg-slate-800 border-indigo-100 dark:border-slate-600 text-indigo-600 dark:text-indigo-400'}
+                  /* Removed old ring classes as we have the halo now */
+                `}>
+                    <Coffee size={14} />
+                  </div>
                 </div>
               </Marker>
             )
