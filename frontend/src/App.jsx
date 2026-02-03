@@ -77,6 +77,7 @@ function App() {
 
   const [activePurpose, setActivePurpose] = useState('all');
   const [activePreferences, setActivePreferences] = useState([]);
+  const [maxDistance, setMaxDistance] = useState(5); // Default 5km
 
   const searchInputRef = useRef(null);
   const mapRef = useRef(null);
@@ -148,6 +149,10 @@ function App() {
   const filtered = useMemo(() => {
     let result = cafes.filter(c => {
       if (!c.vibes) return false;
+
+      // Distance Filter
+      if (c.distance_km && parseFloat(c.distance_km) > maxDistance) return false;
+
       // Purpose Logic
       if (activePurpose !== 'all') {
         const purposeMap = {
@@ -161,30 +166,34 @@ function App() {
       return true;
     });
 
-    // --- SORTING LOGIC ---
-    // If a preference is active, sort by it. If multiple, sort by the LAST selected one (primary sort).
+    // --- SORTING LOGIC (Multi-Criteria Score) ---
+    // If preferences are active, calculate a total score for each cafe based on ALL active preferences.
     if (activePreferences.length > 0) {
-      const primaryPref = activePreferences[activePreferences.length - 1]; // Sort by most recent click
-      const config = TAG_CONFIG[primaryPref];
+      result.sort((a, b) => {
+        let scoreA = 0;
+        let scoreB = 0;
 
-      if (config && config.levels) {
-        result.sort((a, b) => {
-          // Get Raw Values
-          const valA = a.vibes?.[getVibeKey(primaryPref)];
-          const valB = b.vibes?.[getVibeKey(primaryPref)];
+        activePreferences.forEach(pref => {
+          const config = TAG_CONFIG[pref];
+          const key = getVibeKey(pref);
 
-          // Get Score (Default to 0)
-          const scoreA = config.levels[valA] || 0;
-          const scoreB = config.levels[valB] || 0;
+          // Look up value in levels map (or default to 0 if not found)
+          const valA = a.vibes?.[key];
+          const valB = b.vibes?.[key];
 
-          return scoreB - scoreA; // Descending (Best first)
+          if (config && config.levels) {
+            scoreA += config.levels[valA] || 0;
+            scoreB += config.levels[valB] || 0;
+          }
         });
-      }
+
+        // Sort Descending by Total Score
+        return scoreB - scoreA;
+      });
     }
 
     return result;
-  }, [cafes, activePurpose, activePreferences]);
-
+  }, [cafes, activePurpose, activePreferences, maxDistance]);
 
 
   const flyToCafe = (c) => { setSelectedCafe(c); mapRef.current?.flyTo({ center: [c.lng, c.lat], zoom: 16 }); };
@@ -241,6 +250,16 @@ function App() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* DISTANCE SLIDER */}
+          <div className="mb-4">
+            <div className="flex justify-between items-center mb-1">
+              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Distance</h4>
+              <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">{maxDistance} km</span>
+            </div>
+            <input type="range" min="1" max="40" step="1" value={maxDistance} onChange={(e) => setMaxDistance(parseInt(e.target.value))}
+              className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
           </div>
 
           {/* Preference Filters (WRAPPED/STACKED) */}
