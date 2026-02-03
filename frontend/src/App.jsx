@@ -202,7 +202,7 @@ function App() {
       <div className="w-full md:w-[400px] h-full flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-xl z-30 flex-shrink-0 transition-colors duration-300 relative">
 
         {/* HEADER */}
-        <div className="flex-none px-5 py-5 bg-white dark:bg-slate-900 shadow-sm z-20 border-b border-slate-100 dark:border-slate-800 transition-colors">
+        <div className="flex-none px-5 py-5 bg-white dark:bg-slate-900 shadow-sm z-20 border-b border-slate-100 dark:border-slate-800 transition-colors max-h-[50vh] overflow-y-auto scrollbar-hide">
 
           {/* LOGO AREA */}
           <div className="flex justify-between items-center mb-4">
@@ -301,11 +301,11 @@ function App() {
 
                   {/* Badge removed from here to fix alignment */}
 
-                  <div className="flex justify-between mb-1">
-                    <h3 className={`font-bold line-clamp-1 ${selectedCafe?.id === c.id ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>{c.name}</h3>
-                    <div className="flex items-center gap-1">
-                      {c.distance_km && <span className="text-xs font-bold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 px-2 py-1 rounded h-fit">{c.distance_km} km</span>}
-                      {c.rating && <span className="text-xs font-bold bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded h-fit">★ {c.rating}</span>}
+                  <div className="flex justify-between items-center mb-1 gap-2">
+                    <h3 className={`font-bold truncate min-w-0 ${selectedCafe?.id === c.id ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>{c.name}</h3>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {c.distance_km && <span className="text-xs font-bold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 px-2 py-1 rounded h-fit whitespace-nowrap">{c.distance_km} km</span>}
+                      {c.rating && <span className="text-xs font-bold bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded h-fit whitespace-nowrap">★ {c.rating}</span>}
                     </div>
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-2 leading-relaxed">{c.vibes?.summary}</p>
@@ -345,8 +345,8 @@ function App() {
 
           return (
             <motion.div initial={{ x: -400, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -400, opacity: 0 }} transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className={`absolute left-0 md:left-[400px] top-0 h-full w-full md:w-[400px] shadow-2xl z-50 md:z-20 border-l border-slate-200 dark:border-slate-800 transition-colors scrollbar-hide
-            ${isHighMatchProfile ? 'bg-rainbow-vivid p-[3px]' : 'bg-white dark:bg-slate-900'}
+              className={`absolute left-0 md:left-[400px] top-0 h-full w-full md:w-[400px] shadow-2xl z-50 md:z-20 border-l border-slate-200 dark:border-slate-800 transition-colors scrollbar-hide p-[3px]
+            ${isHighMatchProfile ? 'bg-rainbow-vivid' : 'bg-slate-200 dark:bg-slate-800'}
             `}>
 
               {/* INNER CONTAINER (Handles background color) */}
