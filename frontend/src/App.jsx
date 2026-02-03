@@ -169,31 +169,27 @@ function App() {
     // --- SORTING LOGIC (Multi-Criteria Score) ---
     // If preferences are active, calculate a total score for each cafe based on ALL active preferences.
     if (activePreferences.length > 0) {
-      result.sort((a, b) => {
-        let scoreA = 0;
-        let scoreB = 0;
-
+      result = result.map(c => {
+        let score = 0;
         activePreferences.forEach(pref => {
           const config = TAG_CONFIG[pref];
           const key = getVibeKey(pref);
-
-          // Look up value in levels map (or default to 0 if not found)
-          const valA = a.vibes?.[key];
-          const valB = b.vibes?.[key];
-
+          const val = c.vibes?.[key];
           if (config && config.levels) {
-            scoreA += config.levels[valA] || 0;
-            scoreB += config.levels[valB] || 0;
+            score += config.levels[val] || 0;
           }
         });
-
-        // Sort Descending by Total Score
-        return scoreB - scoreA;
+        return { ...c, searchScore: score };
       });
+
+      result.sort((a, b) => b.searchScore - a.searchScore);
     }
 
     return result;
   }, [cafes, activePurpose, activePreferences, maxDistance]);
+
+  const maxPossibleScore = activePreferences.length * 3;
+
 
 
   const flyToCafe = (c) => { setSelectedCafe(c); mapRef.current?.flyTo({ center: [c.lng, c.lat], zoom: 16 }); };
@@ -284,43 +280,51 @@ function App() {
 
         {/* LIST */}
         <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 space-y-3 transition-colors">
-          {filtered.map(c => (
-            <div key={c.id} onClick={() => flyToCafe(c)}
-              className={`p-4 rounded-2xl border cursor-pointer hover:shadow-lg transition-all dark:hover:border-indigo-500
-                ${selectedCafe?.id === c.id
-                  ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500 ring-1 ring-indigo-500'
-                  : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800'}`}>
+          {filtered.map(c => {
+            // High Score Logic: Within 2 points of max
+            const isHighMatch = activePreferences.length > 0 && c.searchScore >= (maxPossibleScore - 2);
 
-              <div className="flex justify-between mb-1">
-                <h3 className={`font-bold line-clamp-1 ${selectedCafe?.id === c.id ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>{c.name}</h3>
-                <div className="flex items-center gap-1">
-                  {c.distance_km && <span className="text-xs font-bold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 px-2 py-1 rounded h-fit">{c.distance_km} km</span>}
-                  {c.rating && <span className="text-xs font-bold bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded h-fit">★ {c.rating}</span>}
+            return (
+              <div key={c.id} onClick={() => flyToCafe(c)}
+                className={`p-4 rounded-2xl border cursor-pointer hover:shadow-lg transition-all dark:hover:border-indigo-500 relative overflow-hidden
+                ${selectedCafe?.id === c.id
+                    ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500 ring-1 ring-indigo-500'
+                    : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800'}
+                ${isHighMatch ? 'ring-2 ring-amber-400 dark:ring-amber-500 shadow-xl shadow-amber-200 dark:shadow-amber-900/20' : ''}
+                  `}>
+
+                {isHighMatch && <div className="absolute top-0 right-0 bg-amber-400 text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg z-10">TOP MATCH</div>}
+
+                <div className="flex justify-between mb-1">
+                  <h3 className={`font-bold line-clamp-1 ${selectedCafe?.id === c.id ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>{c.name}</h3>
+                  <div className="flex items-center gap-1">
+                    {c.distance_km && <span className="text-xs font-bold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 px-2 py-1 rounded h-fit">{c.distance_km} km</span>}
+                    {c.rating && <span className="text-xs font-bold bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded h-fit">★ {c.rating}</span>}
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-2 leading-relaxed">{c.vibes?.summary}</p>
+                {/* EXPANDED TAGS DISPLAY (Only Top Tier) */}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {Object.entries(TAG_CONFIG).map(([key, config]) => {
+                    const rawVal = c.vibes?.[getVibeKey(key)];
+                    if (!rawVal) return null;
+
+                    // Logic: Only show if it matches the "Best" level (3) or is boolean true
+                    // This keeps the card clean. Full details are in the profile.
+                    const isTopTier = (config.levels && config.levels[rawVal] === 3) || rawVal === true;
+
+                    if (!isTopTier) return null;
+
+                    let label = config.map?.[rawVal] || rawVal;
+                    if (rawVal === true) label = config.map?.[true];
+
+                    return (
+                      <MiniTag key={key} config={config} label={label} />
+                    );
+                  })}
                 </div>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-2 leading-relaxed">{c.vibes?.summary}</p>
-              {/* EXPANDED TAGS DISPLAY (Only Top Tier) */}
-              <div className="flex flex-wrap gap-2 mt-2">
-                {Object.entries(TAG_CONFIG).map(([key, config]) => {
-                  const rawVal = c.vibes?.[getVibeKey(key)];
-                  if (!rawVal) return null;
-
-                  // Logic: Only show if it matches the "Best" level (3) or is boolean true
-                  // This keeps the card clean. Full details are in the profile.
-                  const isTopTier = (config.levels && config.levels[rawVal] === 3) || rawVal === true;
-
-                  if (!isTopTier) return null;
-
-                  let label = config.map?.[rawVal] || rawVal;
-                  if (rawVal === true) label = config.map?.[true];
-
-                  return (
-                    <MiniTag key={key} config={config} label={label} />
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
 
@@ -328,7 +332,7 @@ function App() {
       <AnimatePresence>
         {selectedCafe && (
           <motion.div initial={{ x: -400, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -400, opacity: 0 }}
-            className="absolute left-0 md:left-[400px] top-0 h-full w-full md:w-[400px] bg-white dark:bg-slate-900 shadow-2xl z-30 border-l border-slate-200 dark:border-slate-800 overflow-y-auto transition-colors">
+            className="absolute left-0 md:left-[400px] top-0 h-full w-full md:w-[400px] bg-white dark:bg-slate-900 shadow-2xl z-50 md:z-30 border-l border-slate-200 dark:border-slate-800 overflow-y-auto transition-colors">
 
             <div className="sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur z-20 px-4 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">PROFILE</div>
@@ -402,16 +406,22 @@ function App() {
             </div>
           </Marker>
 
-          {filtered.map(c => (
-            <Marker key={c.id} latitude={c.lat} longitude={c.lng} onClick={e => { e.originalEvent.stopPropagation(); flyToCafe(c) }}>
-              <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer
+          {filtered.map(c => {
+            const isHighMatch = activePreferences.length > 0 && c.searchScore >= (maxPossibleScore - 2);
+
+            return (
+              <Marker key={c.id} latitude={c.lat} longitude={c.lng} onClick={e => { e.originalEvent.stopPropagation(); flyToCafe(c) }}>
+                <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer
                 ${selectedCafe?.id === c.id
-                  ? 'bg-indigo-600 border-white text-white scale-110'
-                  : 'bg-white dark:bg-slate-800 border-indigo-100 dark:border-slate-600 text-indigo-600 dark:text-indigo-400'}`}>
-                {c.vibes?.outlets_level === 'Many' ? <Plug size={14} /> : <Coffee size={14} />}
-              </div>
-            </Marker>
-          ))}
+                    ? 'bg-indigo-600 border-white text-white scale-110'
+                    : 'bg-white dark:bg-slate-800 border-indigo-100 dark:border-slate-600 text-indigo-600 dark:text-indigo-400'}
+                  ${isHighMatch ? 'ring-4 ring-amber-400 ring-opacity-50 border-amber-500 animate-pulse' : ''}
+              `}>
+                  <Coffee size={14} />
+                </div>
+              </Marker>
+            )
+          })}
         </Map>
       </div>
       <Analytics />
