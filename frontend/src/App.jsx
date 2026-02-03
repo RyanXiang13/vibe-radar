@@ -281,56 +281,52 @@ function App() {
         {/* LIST */}
         <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 space-y-3 transition-colors">
           {filtered.map(c => {
-            // High Score Logic: >= 80% or perfection
-            const isHighMatch = activePreferences.length > 0 && c.searchScore >= (maxPossibleScore * 0.8);
+            // High Score Logic: >= 80% or perfection OR Default High Rating (>= 4.5) if no prefs
+            const isHighMatch = activePreferences.length > 0
+              ? c.searchScore >= (maxPossibleScore * 0.8)
+              : c.rating >= 4.5;
 
             return (
               <div key={c.id} onClick={() => flyToCafe(c)}
-                className={`p-4 rounded-2xl border cursor-pointer hover:-translate-y-1 hover:shadow-xl transition-all duration-300 dark:hover:border-indigo-500 relative overflow-hidden group
-                ${selectedCafe?.id === c.id
-                    ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500 ring-1 ring-indigo-500'
-                    : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800'}
-                ${isHighMatch ? 'ring-2 ring-transparent bg-rainbow-vivid' : ''}
-                  `}>
+                className={`rounded-2xl cursor-pointer hover:-translate-y-1 hover:shadow-xl transition-all duration-300 relative group overflow-hidden
+                ${isHighMatch ? 'bg-rainbow-vivid p-[3px]' : 'border border-slate-100 dark:border-slate-800'}`}>
 
-                {/* Rainbow Border Pseudo-element fix (if ring-transparent doesn't show gradient) -> Actually, for borders, we often use a wrapper. 
-                    Let's use a simpler approach: Just a nice Rainbow Shadow or Border Color. 
-                    Tailwind 'border-transparent' + 'bg-gradient' on border is tricky without a mask.
-                    Let's use a classic "Rainbow Edge" via shadow or just a background inset.
-                */}
+                {/* INNER CARD CONTENT */}
+                <div className={`h-full w-full bg-white dark:bg-slate-900 rounded-[14px] p-4 relative overflow-hidden
+                  ${selectedCafe?.id === c.id ? 'ring-2 ring-indigo-500 ring-inset' : ''}
+                `}>
 
-                {/* BACKGROUND WAVE for Top Match - Pastel/Deep (Responsive) */}
-                {isHighMatch && <div className="absolute inset-0 bg-rainbow-wave opacity-50 pointer-events-none" />}
+                  {/* Top Match Badge */}
+                  {isHighMatch && <div className="absolute top-0 right-0 bg-rainbow-vivid text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg z-10 shadow-sm">TOP MATCH</div>}
 
-                {isHighMatch && <div className="absolute top-0 right-0 bg-rainbow-vivid text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg z-10 shadow-sm">TOP MATCH</div>}
-
-                <div className="flex justify-between mb-1">
-                  <h3 className={`font-bold line-clamp-1 ${selectedCafe?.id === c.id ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>{c.name}</h3>
-                  <div className="flex items-center gap-1">
-                    {c.distance_km && <span className="text-xs font-bold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 px-2 py-1 rounded h-fit">{c.distance_km} km</span>}
-                    {c.rating && <span className="text-xs font-bold bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded h-fit">★ {c.rating}</span>}
+                  <div className="flex justify-between mb-1">
+                    <h3 className={`font-bold line-clamp-1 ${selectedCafe?.id === c.id ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>{c.name}</h3>
+                    <div className="flex items-center gap-1">
+                      {c.distance_km && <span className="text-xs font-bold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 px-2 py-1 rounded h-fit">{c.distance_km} km</span>}
+                      {c.rating && <span className="text-xs font-bold bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded h-fit">★ {c.rating}</span>}
+                    </div>
                   </div>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-2 leading-relaxed">{c.vibes?.summary}</p>
-                {/* EXPANDED TAGS DISPLAY (Only Top Tier) */}
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {Object.entries(TAG_CONFIG).map(([key, config]) => {
-                    const rawVal = c.vibes?.[getVibeKey(key)];
-                    if (!rawVal) return null;
+                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-2 leading-relaxed">{c.vibes?.summary}</p>
 
-                    // Logic: Only show if it matches the "Best" level (10) or is boolean true (which is 10)
-                    // This keeps the card clean. Full details are in the profile.
-                    const isTopTier = (config.levels && config.levels[rawVal] === 10) || rawVal === true;
+                  {/* EXPANDED TAGS DISPLAY (Only Top Tier) */}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {Object.entries(TAG_CONFIG).map(([key, config]) => {
+                      const rawVal = c.vibes?.[getVibeKey(key)];
+                      if (!rawVal) return null;
 
-                    if (!isTopTier) return null;
+                      // Logic: Only show if it matches the "Best" level (10) or is boolean true (which is 10)
+                      const isTopTier = (config.levels && config.levels[rawVal] === 10) || rawVal === true;
 
-                    let label = config.map?.[rawVal] || rawVal;
-                    if (rawVal === true) label = config.map?.[true];
+                      if (!isTopTier) return null;
 
-                    return (
-                      <MiniTag key={key} config={config} label={label} />
-                    );
-                  })}
+                      let label = config.map?.[rawVal] || rawVal;
+                      if (rawVal === true) label = config.map?.[true];
+
+                      return (
+                        <MiniTag key={key} config={config} label={label} />
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             );
@@ -342,7 +338,7 @@ function App() {
       <AnimatePresence>
         {selectedCafe && (
           <motion.div initial={{ x: -400, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -400, opacity: 0 }}
-            className="absolute left-0 md:left-[400px] top-0 h-full w-full md:w-[400px] bg-white dark:bg-slate-900 shadow-2xl z-50 md:z-30 border-l border-slate-200 dark:border-slate-800 overflow-y-auto transition-colors">
+            className="absolute left-0 md:left-[400px] top-0 h-full w-full md:w-[400px] bg-white dark:bg-slate-900 shadow-2xl z-50 md:z-30 border-l border-slate-200 dark:border-slate-800 overflow-y-auto transition-colors scrollbar-hide">
 
             <div className="sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur z-20 px-4 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">PROFILE</div>
