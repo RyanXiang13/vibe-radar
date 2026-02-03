@@ -16,37 +16,37 @@ const TAG_CONFIG = {
   quiet: {
     label: 'Quiet', icon: <Volume2 size={12} />,
     color: 'emerald', bg: 'bg-emerald-100', text: 'text-emerald-700', darkBg: 'dark:bg-emerald-900/40', darkText: 'dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800',
-    levels: { 'Quiet': 3, 'Moderate': 2, 'Loud': 1 }, // Higher = Quieter (Better)
+    levels: { 'Quiet': 10, 'Moderate': 5, 'Loud': 0 }, // Higher = Quieter (Better)
     map: { 'Quiet': 'Silent', 'Moderate': 'Moderate', 'Loud': 'Loud' }
   },
   power: {
     label: 'Plugs', icon: <Plug size={12} />,
     color: 'amber', bg: 'bg-amber-100', text: 'text-amber-700', darkBg: 'dark:bg-amber-900/40', darkText: 'dark:text-amber-400', border: 'border-amber-200 dark:border-amber-800',
-    levels: { 'Many': 3, 'Scarce': 2, 'None': 1 }, // Higher = More Plugs
+    levels: { 'Many': 10, 'Scarce': 5, 'None': 0 }, // Higher = More Plugs
     map: { 'Many': 'Many', 'Scarce': 'Moderate', 'None': 'Little/None' }
   },
   late: {
     label: 'Late', icon: <Moon size={12} />,
     color: 'indigo', bg: 'bg-indigo-100', text: 'text-indigo-700', darkBg: 'dark:bg-indigo-900/40', darkText: 'dark:text-indigo-400', border: 'border-indigo-200 dark:border-indigo-800',
-    levels: { true: 1, false: 0 },
+    levels: { true: 10, false: 0 },
     map: { true: 'Open Late' }
   },
   food: {
     label: 'Food', icon: <Utensils size={12} />,
     color: 'orange', bg: 'bg-orange-100', text: 'text-orange-700', darkBg: 'dark:bg-orange-900/40', darkText: 'dark:text-orange-400', border: 'border-orange-200 dark:border-orange-800',
-    levels: { 'Full Meals': 3, 'Pastries': 2, 'Coffee Only': 1 }, // Proxy for "Great" -> "Moderate"
+    levels: { 'Full Meals': 10, 'Pastries': 5, 'Coffee Only': 0 }, // Proxy for "Great" -> "Moderate"
     map: { 'Full Meals': 'Great Food', 'Pastries': 'Good Food', 'Coffee Only': 'Mod. Food' }
   },
   wifi: {
     label: 'Wifi', icon: <Wifi size={12} />,
     color: 'blue', bg: 'bg-blue-100', text: 'text-blue-700', darkBg: 'dark:bg-blue-900/40', darkText: 'dark:text-blue-400', border: 'border-blue-200 dark:border-blue-800',
-    levels: { 'Fast': 3, 'Spotty': 2, 'None': 1 },
+    levels: { 'Fast': 10, 'Spotty': 5, 'None': 0 },
     map: { 'Fast': 'Good Wifi', 'Spotty': 'Mod. Wifi', 'None': 'Poor Wifi' }
   },
   group: {
     label: 'Groups', icon: <Users size={12} />,
     color: 'purple', bg: 'bg-purple-100', text: 'text-purple-700', darkBg: 'dark:bg-purple-900/40', darkText: 'dark:text-purple-400', border: 'border-purple-200 dark:border-purple-800',
-    levels: { 'Good for Groups': 3, 'Best for Pairs': 2, 'Solo Only': 1 }, // Higher = Bigger Groups
+    levels: { 'Good for Groups': 10, 'Best for Pairs': 5, 'Solo Only': 0 }, // Higher = Bigger Groups
     map: { 'Good for Groups': '> 5 ppl', 'Best for Pairs': '3-4 ppl', 'Solo Only': '1-2 ppl' }
   },
 };
@@ -188,7 +188,7 @@ function App() {
     return result;
   }, [cafes, activePurpose, activePreferences, maxDistance]);
 
-  const maxPossibleScore = activePreferences.length * 3;
+  const maxPossibleScore = activePreferences.length * 10;
 
 
 
@@ -281,8 +281,8 @@ function App() {
         {/* LIST */}
         <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 space-y-3 transition-colors">
           {filtered.map(c => {
-            // High Score Logic: Within 2 points of max
-            const isHighMatch = activePreferences.length > 0 && c.searchScore >= (maxPossibleScore - 2);
+            // High Score Logic: >= 80% or perfection
+            const isHighMatch = activePreferences.length > 0 && c.searchScore >= (maxPossibleScore * 0.8);
 
             return (
               <div key={c.id} onClick={() => flyToCafe(c)}
@@ -309,9 +309,9 @@ function App() {
                     const rawVal = c.vibes?.[getVibeKey(key)];
                     if (!rawVal) return null;
 
-                    // Logic: Only show if it matches the "Best" level (3) or is boolean true
+                    // Logic: Only show if it matches the "Best" level (10) or is boolean true (which is 10)
                     // This keeps the card clean. Full details are in the profile.
-                    const isTopTier = (config.levels && config.levels[rawVal] === 3) || rawVal === true;
+                    const isTopTier = (config.levels && config.levels[rawVal] === 10) || rawVal === true;
 
                     if (!isTopTier) return null;
 
@@ -408,7 +408,7 @@ function App() {
           </Marker>
 
           {filtered.map(c => {
-            const isHighMatch = activePreferences.length > 0 && c.searchScore >= (maxPossibleScore - 2);
+            const isHighMatch = activePreferences.length > 0 && c.searchScore >= (maxPossibleScore * 0.8);
 
             return (
               <Marker key={c.id} latitude={c.lat} longitude={c.lng} onClick={e => { e.originalEvent.stopPropagation(); flyToCafe(c) }}>
