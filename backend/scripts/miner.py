@@ -38,6 +38,8 @@ def get_vibe_from_ai(reviews_list):
     
     Reviews: {reviews_text[:4000]} 
     
+    IMPORTANT: reduce "Unknown" values. Infer from context if needed (e.g. Starbucks usually has wifi).
+    
     Output format:
     {{
         "noise_level": "Quiet" | "Moderate" | "Loud",

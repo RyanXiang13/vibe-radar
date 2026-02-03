@@ -277,16 +277,20 @@ function App() {
                 </div>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-2 leading-relaxed">{c.vibes?.summary}</p>
-
+              {/* EXPANDED TAGS DISPLAY (Only Top Tier) */}
               <div className="flex flex-wrap gap-2 mt-2">
                 {Object.entries(TAG_CONFIG).map(([key, config]) => {
                   const rawVal = c.vibes?.[getVibeKey(key)];
                   if (!rawVal) return null;
 
-                  // Show all relevant tags except "None" type values
+                  // Logic: Only show if it matches the "Best" level (3) or is boolean true
+                  // This keeps the card clean. Full details are in the profile.
+                  const isTopTier = (config.levels && config.levels[rawVal] === 3) || rawVal === true;
+
+                  if (!isTopTier) return null;
+
                   let label = config.map?.[rawVal] || rawVal;
                   if (rawVal === true) label = config.map?.[true];
-                  if (rawVal === false || rawVal === 'None' || rawVal === 'Little to none' || rawVal === 'Coffee Only' && key === 'food') return null;
 
                   return (
                     <MiniTag key={key} config={config} label={label} />
@@ -329,15 +333,18 @@ function App() {
               )}
 
               <div className="mb-6 bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
-                <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">AI Vibe Check</h4>
+                <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">Vibe Check</h4>
                 <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed italic">"{selectedCafe.vibes?.summary}"</p>
               </div>
 
+              {/* FULL PREFERENCES GRID */}
               <div className="grid grid-cols-2 gap-3 mb-6">
-                <Badge config={TAG_CONFIG.late} val={selectedCafe.vibes?.is_late_night ? "Yes" : "No"} />
+                <Badge config={TAG_CONFIG.wifi} val={selectedCafe.vibes?.wifi_quality} />
                 <Badge config={TAG_CONFIG.power} val={selectedCafe.vibes?.outlets_level} />
                 <Badge config={TAG_CONFIG.quiet} val={selectedCafe.vibes?.noise_level} />
-                <Badge config={TAG_CONFIG.group} val={selectedCafe.vibes?.group_suitability === 'Good for Groups' ? "Good" : "Pairs"} />
+                <Badge config={TAG_CONFIG.food} val={selectedCafe.vibes?.food_type} />
+                <Badge config={TAG_CONFIG.group} val={selectedCafe.vibes?.group_suitability === 'Good for Groups' ? "Good" : (selectedCafe.vibes?.group_suitability === 'Best for Pairs' ? "Pairs" : "Solo")} />
+                <Badge config={TAG_CONFIG.late} val={selectedCafe.vibes?.is_late_night ? "Yes" : "No"} />
               </div>
 
               <div className="space-y-4 mb-8">
