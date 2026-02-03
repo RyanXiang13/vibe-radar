@@ -286,14 +286,23 @@ function App() {
 
             return (
               <div key={c.id} onClick={() => flyToCafe(c)}
-                className={`p-4 rounded-2xl border cursor-pointer hover:shadow-lg transition-all dark:hover:border-indigo-500 relative overflow-hidden
+                className={`p-4 rounded-2xl border cursor-pointer hover:-translate-y-1 hover:shadow-xl transition-all duration-300 dark:hover:border-indigo-500 relative overflow-hidden group
                 ${selectedCafe?.id === c.id
                     ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500 ring-1 ring-indigo-500'
                     : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800'}
-                ${isHighMatch ? 'ring-2 ring-amber-400 dark:ring-amber-500 shadow-xl shadow-amber-200 dark:shadow-amber-900/20' : ''}
+                ${isHighMatch ? 'ring-2 ring-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-[length:200%_200%] animate-gradient-xy' : ''}
                   `}>
 
-                {isHighMatch && <div className="absolute top-0 right-0 bg-amber-400 text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg z-10">TOP MATCH</div>}
+                {/* Rainbow Border Pseudo-element fix (if ring-transparent doesn't show gradient) -> Actually, for borders, we often use a wrapper. 
+                    Let's use a simpler approach: Just a nice Rainbow Shadow or Border Color. 
+                    Tailwind 'border-transparent' + 'bg-gradient' on border is tricky without a mask.
+                    Let's use a classic "Rainbow Edge" via shadow or just a background inset.
+                */}
+
+                {/* BACKGROUND WAVE for Top Match */}
+                {isHighMatch && <div className="absolute inset-0 bg-gradient-to-br from-pink-50/50 via-purple-50/50 to-indigo-50/50 dark:from-pink-900/10 dark:via-purple-900/10 dark:to-indigo-900/10 pointer-events-none" />}
+
+                {isHighMatch && <div className="absolute top-0 right-0 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg z-10 shadow-sm">TOP MATCH</div>}
 
                 <div className="flex justify-between mb-1">
                   <h3 className={`font-bold line-clamp-1 ${selectedCafe?.id === c.id ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>{c.name}</h3>
@@ -416,7 +425,7 @@ function App() {
                 ${selectedCafe?.id === c.id
                     ? 'bg-indigo-600 border-white text-white scale-110'
                     : 'bg-white dark:bg-slate-800 border-indigo-100 dark:border-slate-600 text-indigo-600 dark:text-indigo-400'}
-                  ${isHighMatch ? 'ring-4 ring-amber-400 ring-opacity-50 border-amber-500 animate-pulse' : ''}
+                  ${isHighMatch ? 'ring-4 ring-purple-400 ring-opacity-50 border-purple-500' : ''}
               `}>
                   <Coffee size={14} />
                 </div>
