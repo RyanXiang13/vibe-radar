@@ -199,7 +199,7 @@ function App() {
     <div className={`${isDarkMode ? 'dark' : ''} flex h-screen w-screen font-sans overflow-hidden relative bg-slate-200 dark:bg-slate-950`}>
 
       {/* SIDEBAR */}
-      <div className="w-full md:w-[400px] h-full flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-xl z-20 flex-shrink-0 transition-colors duration-300">
+      <div className="w-full md:w-[400px] h-full flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-xl z-30 flex-shrink-0 transition-colors duration-300 relative">
 
         {/* HEADER */}
         <div className="flex-none px-5 py-5 bg-white dark:bg-slate-900 shadow-sm z-20 border-b border-slate-100 dark:border-slate-800 transition-colors">
@@ -296,8 +296,11 @@ function App() {
                   ${selectedCafe?.id === c.id ? 'ring-2 ring-indigo-500 ring-inset' : ''}
                 `}>
 
-                  {/* Top Match Badge */}
-                  {isHighMatch && <div className="absolute top-0 right-0 bg-rainbow-vivid text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg z-10 shadow-sm">TOP MATCH</div>}
+                  {/* Top Match Badge (Now on Outer Container to bridge gap? No, let's keep inner but negative margin) */}
+                  {/* Actually, moving to outer container is cleanest for "flush" look with border, but `rounded-bl-lg` needs to match inner corner. 
+                      Let's try negative margin on the badge to pull it to the corner of the padding. 
+                      Outer padding is 3px. So -3px margin. */}
+                  {isHighMatch && <div className="absolute -top-[3px] -right-[3px] bg-rainbow-vivid text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg z-10 shadow-sm">TOP MATCH</div>}
 
                   <div className="flex justify-between mb-1">
                     <h3 className={`font-bold line-clamp-1 ${selectedCafe?.id === c.id ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>{c.name}</h3>
@@ -336,62 +339,74 @@ function App() {
 
       {/* DETAIL PANEL */}
       <AnimatePresence>
-        {selectedCafe && (
-          <motion.div initial={{ x: -400, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -400, opacity: 0 }}
-            className="absolute left-0 md:left-[400px] top-0 h-full w-full md:w-[400px] bg-white dark:bg-slate-900 shadow-2xl z-50 md:z-30 border-l border-slate-200 dark:border-slate-800 overflow-y-auto transition-colors scrollbar-hide">
+        {selectedCafe && (() => {
+          const isHighMatchProfile = activePreferences.length > 0
+            ? selectedCafe.searchScore >= (maxPossibleScore * 0.8)
+            : selectedCafe.rating >= 4.5;
 
-            <div className="sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur z-20 px-4 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">PROFILE</div>
-              <button onClick={() => setSelectedCafe(null)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500"><X size={20} /></button>
-            </div>
+          return (
+            <motion.div initial={{ x: -400, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -400, opacity: 0 }} transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className={`absolute left-0 md:left-[400px] top-0 h-full w-full md:w-[400px] shadow-2xl z-50 md:z-20 border-l border-slate-200 dark:border-slate-800 transition-colors scrollbar-hide
+            ${isHighMatchProfile ? 'bg-rainbow-vivid p-[3px]' : 'bg-white dark:bg-slate-900'}
+            `}>
 
-            <div className="p-6 pb-20">
-              <h2 className="text-3xl font-black mb-1 text-slate-900 dark:text-white leading-tight">{selectedCafe.name}</h2>
-              <div className="flex justify-between items-start mb-6">
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{selectedCafe.address}</p>
-                {selectedCafe.distance_km && (
-                  <span className="shrink-0 text-xs font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-md">
-                    {selectedCafe.distance_km} km away
-                  </span>
-                )}
-              </div>
+              {/* INNER CONTAINER (Handles background color) */}
+              <div className={`h-full w-full bg-white dark:bg-slate-900 overflow-y-auto scrollbar-hide ${isHighMatchProfile ? 'rounded-l-none' : ''}`}>
 
-              {selectedCafe.vibes?.best_for && (
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {selectedCafe.vibes.best_for.map(tag => (
-                    <span key={tag} className="px-3 py-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold rounded-full shadow-md">{tag}</span>
-                  ))}
+                <div className="sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur z-20 px-4 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">PROFILE</div>
+                  <button onClick={() => setSelectedCafe(null)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500"><X size={20} /></button>
                 </div>
-              )}
 
-              <div className="mb-6 bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
-                <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">Vibe Check</h4>
-                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed italic">"{selectedCafe.vibes?.summary}"</p>
-              </div>
+                <div className="p-6 pb-20">
+                  <h2 className="text-3xl font-black mb-1 text-slate-900 dark:text-white leading-tight">{selectedCafe.name}</h2>
+                  <div className="flex justify-between items-start mb-6">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{selectedCafe.address}</p>
+                    {selectedCafe.distance_km && (
+                      <span className="shrink-0 text-xs font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-md">
+                        {selectedCafe.distance_km} km away
+                      </span>
+                    )}
+                  </div>
 
-              {/* FULL PREFERENCES GRID */}
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                <Badge config={TAG_CONFIG.wifi} val={selectedCafe.vibes?.wifi_quality} />
-                <Badge config={TAG_CONFIG.power} val={selectedCafe.vibes?.outlets_level} />
-                <Badge config={TAG_CONFIG.quiet} val={selectedCafe.vibes?.noise_level} />
-                <Badge config={TAG_CONFIG.food} val={selectedCafe.vibes?.food_type} />
-                <Badge config={TAG_CONFIG.group} val={selectedCafe.vibes?.group_suitability === 'Good for Groups' ? "Good" : (selectedCafe.vibes?.group_suitability === 'Best for Pairs' ? "Pairs" : "Solo")} />
-                <Badge config={TAG_CONFIG.late} val={selectedCafe.vibes?.is_late_night ? "Yes" : "No"} />
-              </div>
+                  {selectedCafe.vibes?.best_for && (
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {selectedCafe.vibes.best_for.map(tag => (
+                        <span key={tag} className="px-3 py-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold rounded-full shadow-md">{tag}</span>
+                      ))}
+                    </div>
+                  )}
 
-              <div className="space-y-4 mb-8">
-                <InfoRow icon={<Clock size={16} />} label="Time Limit?" val={selectedCafe.vibes?.time_limit_status === 'Strict' ? "⚠️ Strict Limits" : "✅ Chill / None"} />
-                <InfoRow icon={<Armchair size={16} />} label="Seating Tip" val={`"${selectedCafe.vibes?.seating_tip || "Arrive early."}"`} />
-                <InfoRow icon={<Users size={16} />} label="Crowd Vibe" val={`"${selectedCafe.vibes?.busyness_info || "Steady."}"`} />
-              </div>
+                  <div className="mb-6 bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">Vibe Check</h4>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed italic">"{selectedCafe.vibes?.summary}"</p>
+                  </div>
 
-              <a href={getMapsUrl(selectedCafe)} target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-4 rounded-xl font-bold shadow-lg hover:bg-slate-800 dark:hover:bg-slate-200 transition-all">
-                <ExternalLink size={18} /> Open in Google Maps
-              </a>
-            </div>
-          </motion.div>
-        )}
+                  {/* FULL PREFERENCES GRID */}
+                  <div className="grid grid-cols-2 gap-3 mb-6">
+                    <Badge config={TAG_CONFIG.wifi} val={selectedCafe.vibes?.wifi_quality} />
+                    <Badge config={TAG_CONFIG.power} val={selectedCafe.vibes?.outlets_level} />
+                    <Badge config={TAG_CONFIG.quiet} val={selectedCafe.vibes?.noise_level} />
+                    <Badge config={TAG_CONFIG.food} val={selectedCafe.vibes?.food_type} />
+                    <Badge config={TAG_CONFIG.group} val={selectedCafe.vibes?.group_suitability === 'Good for Groups' ? "Good" : (selectedCafe.vibes?.group_suitability === 'Best for Pairs' ? "Pairs" : "Solo")} />
+                    <Badge config={TAG_CONFIG.late} val={selectedCafe.vibes?.is_late_night ? "Yes" : "No"} />
+                  </div>
+
+                  <div className="space-y-4 mb-8">
+                    <InfoRow icon={<Clock size={16} />} label="Time Limit?" val={selectedCafe.vibes?.time_limit_status === 'Strict' ? "⚠️ Strict Limits" : "✅ Chill / None"} />
+                    <InfoRow icon={<Armchair size={16} />} label="Seating Tip" val={`"${selectedCafe.vibes?.seating_tip || "Arrive early."}"`} />
+                    <InfoRow icon={<Users size={16} />} label="Crowd Vibe" val={`"${selectedCafe.vibes?.busyness_info || "Steady."}"`} />
+                  </div>
+
+                  <a href={getMapsUrl(selectedCafe)} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-4 rounded-xl font-bold shadow-lg hover:bg-slate-800 dark:hover:bg-slate-200 transition-all">
+                    <ExternalLink size={18} /> Open in Google Maps
+                  </a>
+                </div>
+              </div> {/* End Inner Container */}
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
 
       {/* MAP */}
