@@ -32,26 +32,40 @@
     animation: gradient-xy 3s ease infinite;
     background-size: 200% 200%;
   }
-  
-  .animate-gradient-x {
-      animation: gradient-x 3s ease infinite;
-      background-size: 200% 200%;
+
+  /* Vivid rainbow for icons/borders - cycled fast */
+  .bg-rainbow-vivid {
+    background: linear-gradient(to right, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #a855f7, #ec4899, #ef4444);
+    background-size: 200% auto;
+    animation: rainbow 3s linear infinite;
+  }
+
+  /* Pastel rainbow for card backgrounds - cycled slow (WAVE) */
+  .bg-rainbow-pastel {
+    background: linear-gradient(to right, #fee2e2, #ffedd5, #fef9c3, #dcfce7, #dbeafe, #f3e8ff, #fce7f3, #fee2e2);
+    /* Lighter pastel: red-100, orange-100, yellow-100, green-100, blue-100, purple-100, pink-100, red-100 */
+    background-size: 200% auto;
+    animation: rainbow 8s linear infinite;
+  }
+}
+
+@keyframes rainbow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 200% 50%;
   }
 }
 
 @keyframes gradient-xy {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
 
-@keyframes gradient-x {
-  0%, 100% {
+  0%,
+  100% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }

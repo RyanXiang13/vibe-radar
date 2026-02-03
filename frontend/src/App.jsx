@@ -290,7 +290,7 @@ function App() {
                 ${selectedCafe?.id === c.id
                     ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500 ring-1 ring-indigo-500'
                     : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800'}
-                ${isHighMatch ? 'ring-2 ring-transparent bg-gradient-to-r from-pink-100 via-purple-100 to-indigo-100 dark:from-pink-900/30 dark:via-purple-900/30 dark:to-indigo-900/30 bg-[length:400%_400%] animate-gradient-xy' : ''}
+                ${isHighMatch ? 'ring-2 ring-transparent bg-rainbow-vivid' : ''}
                   `}>
 
                 {/* Rainbow Border Pseudo-element fix (if ring-transparent doesn't show gradient) -> Actually, for borders, we often use a wrapper. 
@@ -299,10 +299,10 @@ function App() {
                     Let's use a classic "Rainbow Edge" via shadow or just a background inset.
                 */}
 
-                {/* BACKGROUND WAVE for Top Match */}
-                {isHighMatch && <div className="absolute inset-0 bg-gradient-to-br from-pink-50/50 via-purple-50/50 to-indigo-50/50 dark:from-pink-900/10 dark:via-purple-900/10 dark:to-indigo-900/10 pointer-events-none" />}
+                {/* BACKGROUND WAVE for Top Match - Pastel */}
+                {isHighMatch && <div className="absolute inset-0 bg-rainbow-pastel opacity-50 pointer-events-none" />}
 
-                {isHighMatch && <div className="absolute top-0 right-0 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg z-10 shadow-sm">TOP MATCH</div>}
+                {isHighMatch && <div className="absolute top-0 right-0 bg-rainbow-vivid text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg z-10 shadow-sm">TOP MATCH</div>}
 
                 <div className="flex justify-between mb-1">
                   <h3 className={`font-bold line-clamp-1 ${selectedCafe?.id === c.id ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>{c.name}</h3>
@@ -422,9 +422,9 @@ function App() {
             return (
               <Marker key={c.id} latitude={c.lat} longitude={c.lng} onClick={e => { e.originalEvent.stopPropagation(); flyToCafe(c) }}>
                 <div className="relative flex items-center justify-center">
-                  {/* RAINBOW HALO for High Matches */}
+                  {/* RAINBOW HALO for High Matches - Vivid Cycle */}
                   {isHighMatch && (
-                    <div className="absolute -inset-1.5 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-[length:200%_200%] animate-gradient-xy opacity-80 blur-[1px]" />
+                    <div className="absolute -inset-2 rounded-full bg-rainbow-vivid opacity-70 blur-sm" />
                   )}
 
                   <div className={`relative w-8 h-8 rounded-full border-2 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer z-10
