@@ -288,19 +288,18 @@ function App() {
 
             return (
               <div key={c.id} onClick={() => flyToCafe(c)}
-                className={`rounded-2xl cursor-pointer hover:-translate-y-1 hover:shadow-xl transition-all duration-300 relative group overflow-hidden
-                ${isHighMatch ? 'bg-rainbow-vivid p-[3px]' : 'border border-slate-100 dark:border-slate-800'}`}>
+                className={`rounded-2xl cursor-pointer hover:-translate-y-1 hover:shadow-xl transition-all duration-300 relative group overflow-hidden p-[3px]
+                ${isHighMatch ? 'bg-rainbow-vivid' : 'bg-slate-200 dark:bg-slate-800'}`}>
+
+                {/* Top Match Badge - Positioned on Outer Container for flush alignment */}
+                {isHighMatch && <div className="absolute top-0 right-0 bg-rainbow-vivid text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg z-10 shadow-sm border-b border-l border-white/20">TOP MATCH</div>}
 
                 {/* INNER CARD CONTENT */}
                 <div className={`h-full w-full bg-white dark:bg-slate-900 rounded-[14px] p-4 relative overflow-hidden
                   ${selectedCafe?.id === c.id ? 'ring-2 ring-indigo-500 ring-inset' : ''}
                 `}>
 
-                  {/* Top Match Badge (Now on Outer Container to bridge gap? No, let's keep inner but negative margin) */}
-                  {/* Actually, moving to outer container is cleanest for "flush" look with border, but `rounded-bl-lg` needs to match inner corner. 
-                      Let's try negative margin on the badge to pull it to the corner of the padding. 
-                      Outer padding is 3px. So -3px margin. */}
-                  {isHighMatch && <div className="absolute -top-[3px] -right-[3px] bg-rainbow-vivid text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg z-10 shadow-sm">TOP MATCH</div>}
+                  {/* Badge removed from here to fix alignment */}
 
                   <div className="flex justify-between mb-1">
                     <h3 className={`font-bold line-clamp-1 ${selectedCafe?.id === c.id ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>{c.name}</h3>
