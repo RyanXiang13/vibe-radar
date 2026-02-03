@@ -51,6 +51,17 @@ const TAG_CONFIG = {
   },
 };
 
+// Helper to map Pref ID to DB Column Key
+const getVibeKey = (id) => {
+  if (id === 'quiet') return 'noise_level';
+  if (id === 'power') return 'outlets_level';
+  if (id === 'late') return 'is_late_night';
+  if (id === 'food') return 'food_type';
+  if (id === 'wifi') return 'wifi_quality';
+  if (id === 'group') return 'group_suitability';
+  return id;
+};
+
 function App() {
   // --- STATE ---
   // Default: Downtown Toronto
@@ -174,16 +185,7 @@ function App() {
     return result;
   }, [cafes, activePurpose, activePreferences]);
 
-  // Helper to map Pref ID to DB Column Key
-  const getVibeKey = (id) => {
-    if (id === 'quiet') return 'noise_level';
-    if (id === 'power') return 'outlets_level';
-    if (id === 'late') return 'is_late_night';
-    if (id === 'food') return 'food_type';
-    if (id === 'wifi') return 'wifi_quality';
-    if (id === 'group') return 'group_suitability';
-    return id;
-  };
+
 
   const flyToCafe = (c) => { setSelectedCafe(c); mapRef.current?.flyTo({ center: [c.lng, c.lat], zoom: 16 }); };
   const getMapsUrl = (c) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.name + " " + c.address)}`;
