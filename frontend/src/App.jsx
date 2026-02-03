@@ -299,8 +299,8 @@ function App() {
                     Let's use a classic "Rainbow Edge" via shadow or just a background inset.
                 */}
 
-                {/* BACKGROUND WAVE for Top Match - Pastel */}
-                {isHighMatch && <div className="absolute inset-0 bg-rainbow-pastel opacity-50 pointer-events-none" />}
+                {/* BACKGROUND WAVE for Top Match - Pastel/Deep (Responsive) */}
+                {isHighMatch && <div className="absolute inset-0 bg-rainbow-wave opacity-50 pointer-events-none" />}
 
                 {isHighMatch && <div className="absolute top-0 right-0 bg-rainbow-vivid text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg z-10 shadow-sm">TOP MATCH</div>}
 

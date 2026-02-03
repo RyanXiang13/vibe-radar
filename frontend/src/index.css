@@ -41,11 +41,19 @@
   }
 
   /* Pastel rainbow for card backgrounds - cycled slow (WAVE) */
-  .bg-rainbow-pastel {
+  /* Renamed to wave for dynamic light/dark support */
+  .bg-rainbow-wave {
     background: linear-gradient(to right, #fee2e2, #ffedd5, #fef9c3, #dcfce7, #dbeafe, #f3e8ff, #fce7f3, #fee2e2);
     /* Lighter pastel: red-100, orange-100, yellow-100, green-100, blue-100, purple-100, pink-100, red-100 */
     background-size: 200% auto;
     animation: rainbow 8s linear infinite;
+  }
+
+  /* Dark mode override for the wave */
+  :is(.dark .bg-rainbow-wave) {
+    background: linear-gradient(to right, #450a0a, #431407, #422006, #052e16, #172554, #3b0764, #500724, #450a0a);
+    /* Darker Deep: red-950...pink-950 */
+    background-size: 200% auto;
   }
 }
 
