@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Map, { Marker, NavigationControl } from 'react-map-gl';
 import { Coffee, Search, Zap, Plug, Volume2, Wifi, Moon, Sun, Clock, Users, ExternalLink, Armchair, X, Laptop, MessageCircle, Heart, Utensils } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Analytics } from '@vercel/analytics/react';
 import { fetchCafes } from './api';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -392,6 +393,7 @@ function App() {
           ))}
         </Map>
       </div>
+      <Analytics />
       <style>{`.scrollbar-hide::-webkit-scrollbar { display: none; }`}</style>
     </div>
   );
