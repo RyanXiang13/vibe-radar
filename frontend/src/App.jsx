@@ -279,10 +279,32 @@ function App() {
           <div className="mb-4">
             <div className="flex justify-between items-center mb-1">
               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Distance</h4>
-              <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">{maxDistance} km</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="1"
+                  max="40"
+                  value={maxDistance}
+                  onChange={(e) => {
+                    let val = parseInt(e.target.value) || 1;
+                    if (val > 40) val = 40;
+                    if (val < 1) val = 1;
+                    setMaxDistance(val);
+                  }}
+                  className="w-12 text-center bg-slate-100 dark:bg-slate-800 rounded font-bold text-xs text-slate-700 dark:text-slate-200 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+                <span className="text-[10px] font-bold text-slate-400">km <span className="text-[9px] opacity-70">(Max 40)</span></span>
+              </div>
             </div>
-            <input type="range" min="1" max="40" step="1" value={maxDistance} onChange={(e) => setMaxDistance(parseInt(e.target.value))}
-              className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
+            <input
+              type="range"
+              min="1"
+              max="15"
+              step="0.5"
+              value={Math.min(maxDistance, 15)}
+              onChange={(e) => setMaxDistance(parseFloat(e.target.value))}
+              className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+            />
           </div>
 
           {/* Preference Filters (WRAPPED/STACKED) */}
