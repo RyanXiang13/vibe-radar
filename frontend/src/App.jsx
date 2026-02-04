@@ -227,7 +227,7 @@ function App() {
   const getMapsUrl = (c) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.name + " " + c.address)}`;
 
   return (
-    <div className={`${isDarkMode ? 'dark' : ''} flex h-screen w-screen font-sans overflow-hidden relative bg-slate-200 dark:bg-slate-950`}>
+    <div className="flex h-screen w-screen font-sans overflow-hidden relative bg-slate-200 dark:bg-slate-950">
 
       {/* SIDEBAR */}
       <div className={`w-full md:w-[400px] h-full flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-xl z-30 flex-shrink-0 transition-colors duration-300 relative ${isMobileMapOpen ? 'hidden md:flex' : 'flex'}`}>
@@ -501,7 +501,9 @@ function App() {
           </Marker>
 
           {filtered.map(c => {
-            const isHighMatch = activePreferences.length > 0 && c.searchScore >= (maxPossibleScore * 0.8);
+            const isHighMatch = activePreferences.length > 0
+              ? c.searchScore >= (maxPossibleScore * 0.8)
+              : c.rating >= 4.5;
 
             return (
               <Marker key={c.id} latitude={c.lat} longitude={c.lng} onClick={e => { e.originalEvent.stopPropagation(); flyToCafe(c) }}>
