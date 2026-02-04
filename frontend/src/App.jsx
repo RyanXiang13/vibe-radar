@@ -139,6 +139,15 @@ function App() {
   }, []);
   // --- FIX END ---
 
+  // Force Map Resize on Mobile Toggle to prevent black screen
+  useEffect(() => {
+    if (isMobileMapOpen && mapRef.current) {
+      setTimeout(() => {
+        mapRef.current.resize();
+      }, 100); // Small delay to ensuring container is visible
+    }
+  }, [isMobileMapOpen]);
+
   const togglePreference = (id) => {
     if (activePreferences.includes(id)) {
       setActivePreferences(activePreferences.filter(p => p !== id));
@@ -203,7 +212,7 @@ function App() {
       <div className={`w-full md:w-[400px] h-full flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-xl z-30 flex-shrink-0 transition-colors duration-300 relative ${isMobileMapOpen ? 'hidden md:flex' : 'flex'}`}>
 
         {/* HEADER */}
-        <div className="flex-none px-5 py-5 bg-white dark:bg-slate-900 shadow-sm z-20 border-b border-slate-100 dark:border-slate-800 transition-colors max-h-[50vh] overflow-y-auto scrollbar-hide">
+        <div className="flex-none px-5 py-5 bg-white dark:bg-slate-900 shadow-sm z-20 border-b border-slate-100 dark:border-slate-800 transition-colors max-h-[35vh] md:max-h-[50vh] overflow-y-auto scrollbar-hide">
 
           {/* LOGO AREA */}
           <div className="flex justify-between items-center mb-4">
@@ -217,13 +226,6 @@ function App() {
               onClick={() => setIsDarkMode(!isDarkMode)}
               className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-yellow-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-transparent dark:border-slate-700">
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-
-            {/* MOBILE MAP/LIST TOGGLE */}
-            <button
-              onClick={() => setIsMobileMapOpen(!isMobileMapOpen)}
-              className="md:hidden ml-2 p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-all border border-transparent">
-              {isMobileMapOpen ? <List size={20} /> : <MapIcon size={20} />}
             </button>
           </div>
 
@@ -461,6 +463,23 @@ function App() {
       </div>
       <Analytics />
       <style>{`.scrollbar-hide::-webkit-scrollbar { display: none; }`}</style>
+
+      {/* MOBILE FLOATING TOGGLE BUTTON */}
+      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+        <button
+          onClick={() => setIsMobileMapOpen(!isMobileMapOpen)}
+          className="flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-bold shadow-2xl hover:scale-105 active:scale-95 transition-all">
+          {isMobileMapOpen ? (
+            <>
+              <List size={18} /> Show List {filtered.length > 0 && `(${filtered.length})`}
+            </>
+          ) : (
+            <>
+              <MapIcon size={18} /> Show Map {filtered.length > 0 && `(${filtered.length})`}
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
