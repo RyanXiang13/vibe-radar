@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Map, { Marker, NavigationControl } from 'react-map-gl';
-import { Coffee, Search, Zap, Plug, Volume2, Wifi, Moon, Sun, Clock, Users, ExternalLink, Armchair, X, Laptop, MessageCircle, Heart, Utensils, Map as MapIcon, List } from 'lucide-react';
+import { Coffee, Search, Zap, Plug, Volume2, Wifi, Moon, Sun, Clock, Users, ExternalLink, Armchair, X, Laptop, MessageCircle, Heart, Utensils, Map as MapIcon, List, AlertTriangle, CheckCircle2, Hourglass } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Analytics } from '@vercel/analytics/react';
 import { fetchCafes } from './api';
@@ -89,7 +89,27 @@ function App() {
   // usually it searches around the point of interest. 
   // Let's stick to loading around the USER LOCATION (the pin).
   const loadCafes = async (lat, lng) => { setCafes(await fetchCafes(lat, lng)); };
-  useEffect(() => { loadCafes(userLocation.latitude, userLocation.longitude); }, []);
+
+  // Auto-Detect Location on Load
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setUserLocation({ latitude, longitude });
+          setViewState(prev => ({ ...prev, latitude, longitude }));
+          loadCafes(latitude, longitude);
+        },
+        (err) => {
+          console.error("Location denied or error:", err);
+          // Fallback to default load if denied
+          loadCafes(userLocation.latitude, userLocation.longitude);
+        }
+      );
+    } else {
+      loadCafes(userLocation.latitude, userLocation.longitude);
+    }
+  }, []);
 
   // Force HTML class toggle for Tailwind Dark Mode
   useEffect(() => {
@@ -217,9 +237,9 @@ function App() {
 
           {/* LOGO AREA */}
           <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2">
-              <div className="bg-indigo-600 p-2 rounded-lg text-white shadow-md shadow-indigo-500/20">
-                <Coffee size={20} strokeWidth={2.5} />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl overflow-hidden shadow-md shadow-indigo-500/20 hover:scale-105 transition-transform">
+                <img src="/logo.png" alt="Vibe Radar" className="w-full h-full object-cover" />
               </div>
               <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Vibe Radar</h1>
             </div>
@@ -441,7 +461,11 @@ function App() {
                   </div>
 
                   <div className="space-y-4 mb-8">
-                    <InfoRow icon={<Clock size={16} />} label="Time Limit?" val={selectedCafe.vibes?.time_limit_status === 'Strict' ? "⚠️ Strict Limits" : "✅ Chill / None"} />
+                    <InfoRow icon={<Clock size={16} />} label="Time Limit?"
+                      val={selectedCafe.vibes?.time_limit_status === 'Strict'
+                        ? <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400"><AlertTriangle size={14} /> Strict Limits</span>
+                        : <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><CheckCircle2 size={14} /> Chill / None</span>}
+                    />
                     <InfoRow icon={<Armchair size={16} />} label="Seating Tip" val={`"${selectedCafe.vibes?.seating_tip || "Arrive early."}"`} />
                     <InfoRow icon={<Users size={16} />} label="Crowd Vibe" val={`"${selectedCafe.vibes?.busyness_info || "Steady."}"`} />
                   </div>
