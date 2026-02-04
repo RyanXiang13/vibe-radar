@@ -239,7 +239,7 @@ function App() {
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl overflow-hidden shadow-md shadow-indigo-500/20 hover:scale-105 transition-transform">
-                <img src="/logo.png" alt="Vibe Radar" className="w-full h-full object-cover" />
+                <img src="/logo_icon.png" alt="Vibe Radar" className="w-full h-full object-cover" />
               </div>
               <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Vibe Radar</h1>
             </div>
