@@ -1,5 +1,5 @@
 # Vibe Radar 📡☕
-**Live Demo:** [www.viberadar.ryanxiang.dev](https://www.viberadar.ryanxiang.dev)
+**Live Demo:** [viberadar.ryanxiang.dev](https://viberadar.ryanxiang.dev)
 
 ![Vibe Radar Logo](frontend/public/logo_icon.png)
 
