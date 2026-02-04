@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Map, { Marker, NavigationControl } from 'react-map-gl';
-import { Coffee, Search, Zap, Plug, Volume2, Wifi, Moon, Sun, Clock, Users, ExternalLink, Armchair, X, Laptop, MessageCircle, Heart, Utensils } from 'lucide-react';
+import { Coffee, Search, Zap, Plug, Volume2, Wifi, Moon, Sun, Clock, Users, ExternalLink, Armchair, X, Laptop, MessageCircle, Heart, Utensils, Map as MapIcon, List } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Analytics } from '@vercel/analytics/react';
 import { fetchCafes } from './api';
@@ -74,6 +74,7 @@ function App() {
 
   // --- GLOBAL THEME STATE ---
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isMobileMapOpen, setIsMobileMapOpen] = useState(false);
 
   const [activePurpose, setActivePurpose] = useState('all');
   const [activePreferences, setActivePreferences] = useState([]);
@@ -199,7 +200,7 @@ function App() {
     <div className={`${isDarkMode ? 'dark' : ''} flex h-screen w-screen font-sans overflow-hidden relative bg-slate-200 dark:bg-slate-950`}>
 
       {/* SIDEBAR */}
-      <div className="w-full md:w-[400px] h-full flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-xl z-30 flex-shrink-0 transition-colors duration-300 relative">
+      <div className={`w-full md:w-[400px] h-full flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-xl z-30 flex-shrink-0 transition-colors duration-300 relative ${isMobileMapOpen ? 'hidden md:flex' : 'flex'}`}>
 
         {/* HEADER */}
         <div className="flex-none px-5 py-5 bg-white dark:bg-slate-900 shadow-sm z-20 border-b border-slate-100 dark:border-slate-800 transition-colors max-h-[50vh] overflow-y-auto scrollbar-hide">
@@ -216,6 +217,13 @@ function App() {
               onClick={() => setIsDarkMode(!isDarkMode)}
               className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-yellow-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-transparent dark:border-slate-700">
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+
+            {/* MOBILE MAP/LIST TOGGLE */}
+            <button
+              onClick={() => setIsMobileMapOpen(!isMobileMapOpen)}
+              className="md:hidden ml-2 p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-all border border-transparent">
+              {isMobileMapOpen ? <List size={20} /> : <MapIcon size={20} />}
             </button>
           </div>
 
@@ -409,7 +417,7 @@ function App() {
       </AnimatePresence>
 
       {/* MAP */}
-      <div className="flex-1 h-full relative z-10 bg-slate-200 dark:bg-slate-950 transition-colors">
+      <div className={`flex-1 h-full relative z-10 bg-slate-200 dark:bg-slate-950 transition-colors ${isMobileMapOpen ? 'block' : 'hidden md:block'}`}>
         <Map ref={mapRef} {...viewState} onMove={e => setViewState(e.viewState)} style={{ width: '100%', height: '100%' }}
           mapStyle={isDarkMode ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
           mapboxAccessToken={MAPBOX_TOKEN}>
