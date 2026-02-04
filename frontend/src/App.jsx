@@ -438,6 +438,7 @@ function App() {
       {/* MAP */}
       <div className={`flex-1 h-full relative z-10 bg-slate-200 dark:bg-slate-950 transition-colors ${isMobileMapOpen ? 'block' : 'hidden md:block'}`}>
         <Map ref={mapRef} {...viewState} onMove={e => setViewState(e.viewState)} style={{ width: '100%', height: '100%' }}
+          attributionControl={false}
           mapStyle={isDarkMode ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
           mapboxAccessToken={MAPBOX_TOKEN}>
           <NavigationControl position="top-right" showCompass={false} />

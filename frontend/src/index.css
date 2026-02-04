@@ -126,3 +126,9 @@
 .pac-matched {
   @apply text-indigo-600 dark:text-indigo-400 !important;
 }
+
+/* Hide Mapbox Logo/Copyright */
+.mapboxgl-ctrl-logo,
+.mapboxgl-ctrl-attrib {
+  display: none !important;
+}
