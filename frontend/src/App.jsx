@@ -75,6 +75,7 @@ function App() {
   // --- GLOBAL THEME STATE ---
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMobileMapOpen, setIsMobileMapOpen] = useState(false);
+  const [showClear, setShowClear] = useState(false);
 
   const [activePurpose, setActivePurpose] = useState('all');
   const [activePreferences, setActivePreferences] = useState([]);
@@ -231,9 +232,25 @@ function App() {
 
           {/* Search */}
           <div className="relative group mb-5">
-            <Search className="absolute left-3 top-3 text-slate-400 w-5 h-5" />
+            <Search className="absolute left-3 top-3 text-slate-400 w-5 h-5 z-10" />
             <input ref={searchInputRef} placeholder="Find your spot..."
-              className="w-full bg-slate-100 dark:bg-slate-800 rounded-xl py-3 pl-10 outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700 dark:text-slate-200 placeholder:text-slate-400 transition-colors" />
+              onChange={(e) => setShowClear(!!e.target.value)}
+              className="w-full bg-slate-100 dark:bg-slate-800 rounded-xl py-3 pl-10 pr-10 outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700 dark:text-slate-200 placeholder:text-slate-400 transition-colors" />
+
+            {showClear && (
+              <button
+                onClick={() => {
+                  if (searchInputRef.current) {
+                    searchInputRef.current.value = '';
+                    setShowClear(false);
+                    searchInputRef.current.focus();
+                  }
+                }}
+                className="absolute right-3 top-2.5 p-1 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors z-10"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
 
           {/* Purpose Filters (NOW WRAPPED/STACKED) */}
@@ -423,7 +440,7 @@ function App() {
         <Map ref={mapRef} {...viewState} onMove={e => setViewState(e.viewState)} style={{ width: '100%', height: '100%' }}
           mapStyle={isDarkMode ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
           mapboxAccessToken={MAPBOX_TOKEN}>
-          <NavigationControl position="bottom-right" showCompass={false} />
+          <NavigationControl position="top-right" showCompass={false} />
 
           {/* USER LOCATION PIN (Now bound to userLocation, not viewState) */}
           <Marker latitude={userLocation.latitude} longitude={userLocation.longitude}>

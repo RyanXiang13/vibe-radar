@@ -109,3 +109,20 @@
     background-position: 100% 50%;
   }
 }
+
+/* Google Autocomplete Customization */
+.pac-container {
+  @apply font-sans rounded-xl shadow-2xl border-0 mt-2 bg-white text-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:border dark:border-slate-700 !important;
+}
+
+.pac-item {
+  @apply border-transparent hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer py-2 px-4 !important;
+}
+
+.pac-item-query {
+  @apply text-slate-900 dark:text-white font-bold !important;
+}
+
+.pac-matched {
+  @apply text-indigo-600 dark:text-indigo-400 !important;
+}
