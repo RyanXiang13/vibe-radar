@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Map, { Marker, NavigationControl } from 'react-map-gl';
-import { Coffee, Search, Zap, Plug, Volume2, Wifi, Moon, Sun, Clock, Users, ExternalLink, Armchair, X, Laptop, MessageCircle, Heart, Utensils, Map as MapIcon, List, AlertTriangle, CheckCircle2, Hourglass } from 'lucide-react';
+import { Coffee, Search, Zap, Plug, Volume2, Wifi, Moon, Sun, Clock, Users, ExternalLink, Armchair, X, Laptop, MessageCircle, Heart, Utensils, Map as MapIcon, List, AlertTriangle, CheckCircle2, Hourglass, DollarSign } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Analytics } from '@vercel/analytics/react';
 import { fetchCafes } from './api';
@@ -49,6 +49,18 @@ const TAG_CONFIG = {
     levels: { 'Good for Groups': 10, 'Best for Pairs': 5, 'Solo Only': 0 }, // Higher = Bigger Groups
     map: { 'Good for Groups': '> 5 ppl', 'Best for Pairs': '3-4 ppl', 'Solo Only': '1-2 ppl' }
   },
+  price: {
+    label: 'Price', icon: <DollarSign size={12} />,
+    color: 'emerald', bg: 'bg-emerald-100', text: 'text-emerald-700', darkBg: 'dark:bg-emerald-900/40', darkText: 'dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800',
+    levels: { 'Cheap': 10, 'Fair': 5, 'Overpriced': 0 },
+    map: { 'Cheap': 'Cheap', 'Fair': 'Fair', 'Overpriced': 'Pricey' }
+  },
+  comfort: {
+    label: 'Comfort', icon: <Armchair size={12} />,
+    color: 'rose', bg: 'bg-rose-100', text: 'text-rose-700', darkBg: 'dark:bg-rose-900/40', darkText: 'dark:text-rose-400', border: 'border-rose-200 dark:border-rose-800',
+    levels: { 'Cozy': 10, 'Spacious': 5, 'Hard Seats': 0 },
+    map: { 'Cozy': 'Cozy', 'Spacious': 'Spacious', 'Hard Seats': 'Hard Seats' }
+  },
 };
 
 // Helper to map Pref ID to DB Column Key
@@ -59,6 +71,8 @@ const getVibeKey = (id) => {
   if (id === 'food') return 'food_type';
   if (id === 'wifi') return 'wifi_quality';
   if (id === 'group') return 'group_suitability';
+  if (id === 'price') return 'price_perception';
+  if (id === 'comfort') return 'comfort_level';
   return id;
 };
 
@@ -456,6 +470,8 @@ function App() {
                     <Badge config={TAG_CONFIG.power} val={selectedCafe.vibes?.outlets_level} />
                     <Badge config={TAG_CONFIG.quiet} val={selectedCafe.vibes?.noise_level} />
                     <Badge config={TAG_CONFIG.food} val={selectedCafe.vibes?.food_type} />
+                    <Badge config={TAG_CONFIG.price} val={selectedCafe.vibes?.price_perception} />
+                    <Badge config={TAG_CONFIG.comfort} val={selectedCafe.vibes?.comfort_level} />
                     <Badge config={TAG_CONFIG.group} val={selectedCafe.vibes?.group_suitability === 'Good for Groups' ? "Good" : (selectedCafe.vibes?.group_suitability === 'Best for Pairs' ? "Pairs" : "Solo")} />
                     <Badge config={TAG_CONFIG.late} val={selectedCafe.vibes?.is_late_night ? "Yes" : "No"} />
                   </div>

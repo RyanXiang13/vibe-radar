@@ -56,7 +56,8 @@ CREATE TABLE place_vibes (
     is_late_night BOOLEAN DEFAULT FALSE,
     time_limit_status TEXT, 
     bathroom_status TEXT,   
-    has_natural_light BOOLEAN DEFAULT FALSE
+    has_natural_light BOOLEAN DEFAULT FALSE,
+    price_perception TEXT
 );
 """)
 

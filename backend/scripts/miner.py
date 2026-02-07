@@ -21,50 +21,71 @@ if not MAPS_KEY or not AI_KEY:
 conn = psycopg2.connect(os.getenv("DATABASE_URL"))
 cursor = conn.cursor()
 
-def get_vibe_from_ai(reviews_list):
+def get_all_reviews_text(reviews_list):
     """
-    Sends reviews to Gemini to extract structured 'Student Intel' data.
+    Combines ALL reviews into a single block of text.
+    No filtering. No keywords. Pure raw data for the AI.
     """
     if not reviews_list: return None
     
-    # Combine reviews into one block
-    reviews_text = "\n".join([r.get('text', {}).get('text', '') for r in reviews_list])
-    if len(reviews_text) < 50: return None
+    all_text = ""
+    for r in reviews_list:
+        text = r.get('text', {}).get('text', '')
+        if text:
+            all_text += f"- {text}\n"
+            
+    # Hard limit to ~30k characters to avoid hitting the absolute max token limit (approx 7-8k tokens)
+    # Gemini 2.0 Flash has a huge window, but let's be safe.
+    return all_text[:30000]
 
-    # 🧠 THE MASTER PROMPT (Student Survival Guide)
+def get_vibe_from_ai(reviews_list):
+    """
+    Sends FULL review context to Gemini for aggressive inference.
+    """
+    review_context = get_all_reviews_text(reviews_list)
+    if not review_context: return None
+
+    # 🧠 THE "SHERLOCK HOLMES" PROMPT
     prompt_text = f"""
-    Analyze these reviews for a student study spot app.
-    Return strictly VALID JSON. No markdown.
+    Analyze these user reviews for a Study Spot App.
     
-    Reviews: {reviews_text[:4000]} 
+    YOUR GOAL: Extract attributes for students/remote workers.
+    CRITICAL INSTRUCTION: DO NOT RETURN "Unknown".
     
-    IMPORTANT: reduce "Unknown" values. Infer from context if needed (e.g. Starbucks usually has wifi).
+    You must INFER values based on context. 
+    Examples:
+    - "People working on laptops" -> Implies 'Outlets: Many' and 'Wifi: Fast'.
+    - "Great place to write my essay" -> Implies 'Noise: Moderate' or 'Quiet'.
+    - "Expensive latte" -> Implies 'Price: Pricey'.
+    - "Stayed for 4 hours" -> Implies 'Comfort: Cozy'.
     
+    Review Data:
+    {review_context}
+    
+    Return strictly VALID JSON.
     Output format:
     {{
-        "noise_level": "Quiet" | "Moderate" | "Loud",
-        "wifi": "Fast" | "Spotty" | "None",
-        "outlets_level": "Many" | "Scarce" | "None",
+        "noise_level": "Quiet" | "Moderate" | "Loud",  <-- Make a guess!
+        "wifi": "Fast" | "Spotty" | "None",            <-- Infer this!
+        "outlets_level": "Many" | "Scarce" | "None",   <-- Look for 'laptops'!
+        "price_perception": "Cheap" | "Fair" | "Overpriced",
         "comfort_level": "Cozy" | "Spacious" | "Hard Seats",
         "food_type": "Full Meals" | "Pastries" | "Coffee Only",
         
         "best_for": ["Study", "Social", "Group Work", "Date", "Lunch"],
         "group_suitability": "Good for Groups" | "Best for Pairs" | "Solo Only",
-        "seating_tip": "Specific tip (e.g. 'Basement is quiet'). Max 8 words.",
-        "busyness_info": "Crowd pattern (e.g. 'Packed Sat 2pm'). Max 8 words.",
         
         "is_late_night": true/false (True if reviews mention being open late or good for evenings),
-        "time_limit_status": "None" | "Strict" | "Weekends Only" | "Unknown",
         "bathroom_status": "Public" | "Code Required" | "None" | "Unknown",
-        "has_natural_light": true/false (Look for 'bright', 'sunny', 'windows'),
+        "seating_tip": "Specific tip (e.g. 'Back booth has power'). Max 8 words.",
         
         "vibes": ["tag1", "tag2"],
-        "summary": "1 short sentence summary."
+        "summary": "1 short sentence summary focusing on study suitability."
     }}
     """
     
     headers = {"Content-Type": "application/json"}
-    data = { "contents": [{ "parts": [{"text": prompt_text}] }] }
+    data = {"contents": [{"parts": [{"text": prompt_text}]}]}
     
     # Retry logic
     for attempt in range(3):
@@ -87,19 +108,51 @@ def get_vibe_from_ai(reviews_list):
 
 def search_places_batch(query_text, max_count=20):
     """
-    Uses Google Places API (New) v1 to get details + reviews in ONE single call.
+    Uses Google Places API (New) v1 to get details + reviews.
+    Handles pagination to fetch up to 'max_count' results.
     """
     url = "https://places.googleapis.com/v1/places:searchText"
     headers = {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": MAPS_KEY,
-        "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.priceLevel,places.reviews"
+        "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.priceLevel,places.reviews,nextPageToken"
     }
-    body = {"textQuery": query_text, "pageSize": max_count}
     
-    print(f"📡 Sending Batch Maps Request for: '{query_text}'...")
-    response = requests.post(url, headers=headers, json=body)
-    return response.json().get('places', []) if response.status_code == 200 else []
+    all_places = []
+    page_token = None
+    
+    print(f"📡 Sending Batch Maps Request for: '{query_text}' (Target: {max_count})...")
+    
+    while len(all_places) < max_count:
+        # Request up to 20 at a time (API Limit)
+        current_page_size = min(20, max_count - len(all_places))
+        
+        body = {"textQuery": query_text, "pageSize": current_page_size}
+        if page_token:
+            body["pageToken"] = page_token
+            
+        try:
+            response = requests.post(url, headers=headers, json=body)
+            if response.status_code != 200:
+                print(f"❌ Maps API Error: {response.text}")
+                break
+                
+            data = response.json()
+            places = data.get('places', [])
+            all_places.extend(places)
+            
+            page_token = data.get('nextPageToken')
+            if not page_token or len(all_places) >= max_count:
+                break
+                
+            # Short sleep to be nice to the API (sometimes needed for token availability)
+            time.sleep(1)
+            
+        except Exception as e:
+            print(f"❌ Network Error: {e}")
+            break
+            
+    return all_places
 
 def mine_places(location_query, limit=20):
     # 1. Get Batch Data (The "Budget King" Method)
@@ -147,12 +200,13 @@ def mine_places(location_query, limit=20):
         new_place_id = cursor.fetchone()[0]
 
         # 3. SQL Insert Vibes (The "Student Intel" Columns)
+        # 3. SQL Insert Vibes (The "Student Intel" Columns)
         cursor.execute("""
             INSERT INTO place_vibes 
             (place_id, vibe_tags, best_for, noise_level, wifi_quality, outlets_level, comfort_level, 
              food_type, seating_tip, busyness_info, group_suitability,
-             summary, is_late_night, time_limit_status, bathroom_status, has_natural_light)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+             summary, is_late_night, time_limit_status, bathroom_status, has_natural_light, price_perception)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         """, (
             new_place_id, 
             vibe_data.get('vibes', []), 
@@ -163,13 +217,14 @@ def mine_places(location_query, limit=20):
             vibe_data.get('comfort_level'),
             vibe_data.get('food_type'),
             vibe_data.get('seating_tip'),
-            vibe_data.get('busyness_info'),
+            None, # busyness_info (removed)
             vibe_data.get('group_suitability'),
             vibe_data.get('summary'),
             vibe_data.get('is_late_night'),
-            vibe_data.get('time_limit_status'),
+            None, # time_limit_status
             vibe_data.get('bathroom_status'),
-            vibe_data.get('has_natural_light')
+            False, # has_natural_light default,
+            vibe_data.get('price_perception')
         ))
         
         conn.commit()
