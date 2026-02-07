@@ -364,10 +364,10 @@ function App() {
         {/* LIST */}
         <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 space-y-3 transition-colors">
           {filtered.map(c => {
-            // High Score Logic: >= 80% or perfection OR Default High Rating (>= 4.5) if no prefs
+            // High Score Logic: >= 80% or perfection OR Default High Rating (>= 4.8) if no prefs
             const isHighMatch = activePreferences.length > 0
               ? c.searchScore >= (maxPossibleScore * 0.8)
-              : c.rating >= 4.5;
+              : c.rating >= 4.8; // STRICTER THRESHOLD (Was 4.5)
 
             return (
               <div key={c.id} onClick={() => flyToCafe(c)}
@@ -424,7 +424,7 @@ function App() {
         {selectedCafe && (() => {
           const isHighMatchProfile = activePreferences.length > 0
             ? selectedCafe.searchScore >= (maxPossibleScore * 0.8)
-            : selectedCafe.rating >= 4.5;
+            : selectedCafe.rating >= 4.8;
 
           return (
             <motion.div initial={{ x: -400, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -400, opacity: 0 }} transition={{ type: "spring", damping: 25, stiffness: 200 }}
@@ -470,7 +470,7 @@ function App() {
                     <Badge config={TAG_CONFIG.power} val={selectedCafe.vibes?.outlets_level} />
                     <Badge config={TAG_CONFIG.quiet} val={selectedCafe.vibes?.noise_level} />
                     <Badge config={TAG_CONFIG.food} val={selectedCafe.vibes?.food_type} />
-                    <Badge config={TAG_CONFIG.price} val={selectedCafe.vibes?.price_perception} />
+                    <Badge config={TAG_CONFIG.price} val={selectedCafe.vibes?.price_perception} fallback={selectedCafe.price_level} />
                     <Badge config={TAG_CONFIG.comfort} val={selectedCafe.vibes?.comfort_level} />
                     <Badge config={TAG_CONFIG.group} val={selectedCafe.vibes?.group_suitability === 'Good for Groups' ? "Good" : (selectedCafe.vibes?.group_suitability === 'Best for Pairs' ? "Pairs" : "Solo")} />
                     <Badge config={TAG_CONFIG.late} val={selectedCafe.vibes?.is_late_night ? "Yes" : "No"} />
@@ -519,7 +519,7 @@ function App() {
           {filtered.map(c => {
             const isHighMatch = activePreferences.length > 0
               ? c.searchScore >= (maxPossibleScore * 0.8)
-              : c.rating >= 4.5;
+              : c.rating >= 4.8;
 
             return (
               <Marker key={c.id} latitude={c.lat} longitude={c.lng} onClick={e => { e.originalEvent.stopPropagation(); flyToCafe(c) }}>
@@ -573,13 +573,23 @@ const MiniTag = ({ config, label }) => (
   </span>
 );
 
-const Badge = ({ config, val }) => (
-  <div className={`p-3 rounded-xl border flex flex-col items-center text-center ${config.bg} ${config.border} ${config.darkBg} transition-colors`}>
-    <div className={`${config.text} ${config.darkText} mb-1`}>{config.icon}</div>
-    <div className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">{config.label}</div>
-    <div className="font-bold text-slate-800 dark:text-slate-200 text-sm line-clamp-1">{val || "-"}</div>
-  </div>
-);
+const Badge = ({ config, val, fallback }) => {
+  // Price Fallback Logic: If val is missing/Unknown, use Google's price_level (1-3)
+  let displayVal = val;
+  if ((!val || val === 'Unknown') && config.label === 'Price' && fallback) {
+    if (fallback === 1) displayVal = 'Cheap';
+    if (fallback === 2) displayVal = 'Fair';
+    if (fallback === 3) displayVal = 'Pricey';
+  }
+
+  return (
+    <div className={`p-3 rounded-xl border flex flex-col items-center text-center ${config.bg} ${config.border} ${config.darkBg} transition-colors`}>
+      <div className={`${config.text} ${config.darkText} mb-1`}>{config.icon}</div>
+      <div className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">{config.label}</div>
+      <div className="font-bold text-slate-800 dark:text-slate-200 text-sm line-clamp-1">{displayVal || "-"}</div>
+    </div>
+  );
+};
 
 const InfoRow = ({ icon, label, val }) => (
   <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 transition-colors">
