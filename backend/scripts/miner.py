@@ -63,6 +63,7 @@ def get_vibe_from_ai(reviews_list):
     {review_context}
     
     Return strictly VALID JSON.
+    Return a SINGLE JSON object (not a list).
     Output format:
     {{
         "noise_level": "Quiet" | "Moderate" | "Loud",  <-- Make a guess!
@@ -97,7 +98,17 @@ def get_vibe_from_ai(reviews_list):
                 if 'candidates' in result:
                     raw_text = result['candidates'][0]['content']['parts'][0]['text']
                     clean_json = raw_text.replace("```json", "").replace("```", "").strip()
-                    return json.loads(clean_json)
+                    clean_json = raw_text.replace("```json", "").replace("```", "").strip()
+                    parsed = json.loads(clean_json)
+                    
+                    # Handle case where AI returns a list [ {...} ]
+                    if isinstance(parsed, list):
+                        if len(parsed) > 0 and isinstance(parsed[0], dict):
+                            return parsed[0]
+                        else:
+                            return None # Invalid list structure
+                            
+                    return parsed
             elif response.status_code == 429:
                  print(f"     ⚠️ AI Rate Limit. Sleeping 5s... (Attempt {attempt+1})")
                  time.sleep(5)

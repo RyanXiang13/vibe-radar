@@ -61,6 +61,10 @@ CREATE TABLE place_vibes (
 );
 """)
 
+# 5. Add Spatial Index (CRITICAL FOR SPEED)
+# Note: We index the CAST to geography because that's what main.py queries!
+cursor.execute("CREATE INDEX places_location_idx ON places USING GIST ((location::geography));")
+
 conn.commit()
 cursor.close()
 conn.close()
