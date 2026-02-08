@@ -1,6 +1,8 @@
 # Vibe Radar 📡☕
 **Your personal scout for the perfect study spot.**
 
+**Live Demo:** [viberadar.ryanxiang.dev](https://viberadar.ryanxiang.dev/)
+
 ![Vibe Radar Preview](frontend/public/logo_icon.png)
 
 ## The Problem
