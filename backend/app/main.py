@@ -4,7 +4,9 @@ from pydantic import BaseModel
 from typing import List, Optional
 import os
 import psycopg2
-from psycopg2 import pool
+# Imports cleaned up
+# Note: we are NOT importing pool because we are not using it.
+
 
 
 from contextlib import contextmanager
@@ -12,7 +14,6 @@ from psycopg2.extras import RealDictCursor
 import requests
 from dotenv import load_dotenv
 
-load_dotenv()
 load_dotenv()
 app = FastAPI()
 
@@ -79,36 +80,23 @@ class CityRequest(BaseModel):
     email: Optional[str] = None
 
 
-# Initialize Connection Pool
-POOL_ERROR = None
-try:
-    postgreSQL_pool = pool.ThreadedConnectionPool(
-        minconn=1,
-        maxconn=20,
-        dsn=DATABASE_URL
-    )
-    print("✅ Database Connection Pool Created")
-except Exception as e:
-    print(f"❌ Error creating pool: {e}")
-    POOL_ERROR = str(e)
-    postgreSQL_pool = None
+# No Pool - Simple connection for reliability
+def get_db_connection():
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        return conn
+    except Exception as e:
+        print(f"❌ DB Connect Error: {e}")
+        raise HTTPException(500, f"Database Connect Error: {e}")
 
 @contextmanager
-def get_db_connection():
-    if not postgreSQL_pool:
-        raise HTTPException(500, f"Database pool not initialized. Startup Error: {POOL_ERROR}")
-    
-    conn = postgreSQL_pool.getconn()
+def get_db_cursor():
+    conn = get_db_connection()
     try:
         yield conn
     finally:
-        postgreSQL_pool.putconn(conn)
+        conn.close()
 
-@app.on_event("shutdown")
-def shutdown_event():
-    if postgreSQL_pool:
-        postgreSQL_pool.closeall()
-        print("🛑 Database Pool Closed")
 
 @app.get("/cafes", response_model=List[CafeResponse])
 def get_nearby_cafes(address: Optional[str] = Query(None), lat: Optional[float] = Query(None), lng: Optional[float] = Query(None), radius_km: float = 5.0, limit: int = 50):
@@ -120,7 +108,7 @@ def get_nearby_cafes(address: Optional[str] = Query(None), lat: Optional[float] 
     if search_lat is None: raise HTTPException(400, "Need location")
 
     try:
-        with get_db_connection() as conn:
+        with get_db_cursor() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 # Query selects v.* so 'best_for' is definitely retrieved from DB
                 query = """
@@ -167,7 +155,7 @@ def get_nearby_cafes(address: Optional[str] = Query(None), lat: Optional[float] 
 @app.post("/requests")
 def submit_request(req: CityRequest):
     try:
-        with get_db_connection() as conn:
+        with get_db_cursor() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(
                     "INSERT INTO city_requests (city, email) VALUES (%s, %s)", 
