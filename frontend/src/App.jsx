@@ -417,6 +417,16 @@ function App() {
             );
           })}
         </div>
+
+        {/* FOOTER - REQUEST CITY */}
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-20">
+          <a
+            href="mailto:xiangryan13@gmail.com?subject=Vibe%20Radar%20City%20Request&body=I%20want%20Vibe%20Radar%20in..."
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold text-xs hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-white hover:border-indigo-300 dark:hover:border-indigo-500 transition-all"
+          >
+            🚀 Don't see your city? Request it.
+          </a>
+        </div>
       </div>
 
       {/* DETAIL PANEL */}
