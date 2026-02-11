@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-// VITE_API_URL will be set in Vercel later.
-// If it's missing, it defaults to localhost (for you).
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const fetchCafes = async (lat, lng) => {

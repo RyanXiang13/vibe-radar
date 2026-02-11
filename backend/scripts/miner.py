@@ -11,7 +11,6 @@ load_dotenv()
 # --- CONFIGURATION ---
 MAPS_KEY = os.getenv("GMAPS_KEY")
 AI_KEY = os.getenv("GEMINI_API_KEY")
-# Using the stable Flash model for consistent JSON
 AI_MODEL_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 if not MAPS_KEY or not AI_KEY:
@@ -45,7 +44,7 @@ def get_vibe_from_ai(reviews_list):
     review_context = get_all_reviews_text(reviews_list)
     if not review_context: return None
 
-    # 🧠 THE "SHERLOCK HOLMES" PROMPT
+    # Analysis Prompt
     prompt_text = f"""
     Analyze these user reviews for a Study Spot App.
     
@@ -166,7 +165,7 @@ def search_places_batch(query_text, max_count=20):
     return all_places
 
 def mine_places(location_query, limit=20):
-    # 1. Get Batch Data (The "Budget King" Method)
+    # 1. Get Batch Data
     places = search_places_batch(location_query, max_count=limit)
     
     if not places:
@@ -210,8 +209,7 @@ def mine_places(location_query, limit=20):
         
         new_place_id = cursor.fetchone()[0]
 
-        # 3. SQL Insert Vibes (The "Student Intel" Columns)
-        # 3. SQL Insert Vibes (The "Student Intel" Columns)
+        # 3. SQL Insert Vibes
         cursor.execute("""
             INSERT INTO place_vibes 
             (place_id, vibe_tags, best_for, noise_level, wifi_quality, outlets_level, comfort_level, 
@@ -228,13 +226,13 @@ def mine_places(location_query, limit=20):
             vibe_data.get('comfort_level'),
             vibe_data.get('food_type'),
             vibe_data.get('seating_tip'),
-            None, # busyness_info (removed)
+            None,
             vibe_data.get('group_suitability'),
             vibe_data.get('summary'),
             vibe_data.get('is_late_night'),
             None, # time_limit_status
             vibe_data.get('bathroom_status'),
-            False, # has_natural_light default,
+            False,
             vibe_data.get('price_perception')
         ))
         

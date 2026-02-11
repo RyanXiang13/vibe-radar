@@ -10,13 +10,12 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 // Grab the key from Vercel env variables
 const GOOGLE_KEY = import.meta.env.VITE_GMAPS_KEY;
 
-// --- CONFIG: COLOR SYSTEM ---
 // --- CONFIG: COLOR SYSTEM & SORTING ---
 const TAG_CONFIG = {
   quiet: {
     label: 'Quiet', icon: <Volume2 size={12} />,
     color: 'emerald', bg: 'bg-emerald-100', text: 'text-emerald-700', darkBg: 'dark:bg-emerald-900/40', darkText: 'dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800',
-    levels: { 'Quiet': 10, 'Moderate': 5, 'Loud': 0 }, // Higher = Quieter (Better)
+    levels: { 'Quiet': 10, 'Moderate': 5, 'Loud': 0 },
     map: { 'Quiet': 'Silent', 'Moderate': 'Moderate', 'Loud': 'Loud' }
   },
   power: {
@@ -34,7 +33,7 @@ const TAG_CONFIG = {
   food: {
     label: 'Food', icon: <Utensils size={12} />,
     color: 'orange', bg: 'bg-orange-100', text: 'text-orange-700', darkBg: 'dark:bg-orange-900/40', darkText: 'dark:text-orange-400', border: 'border-orange-200 dark:border-orange-800',
-    levels: { 'Full Meals': 10, 'Pastries': 5, 'Coffee Only': 0 }, // Proxy for "Great" -> "Moderate"
+    levels: { 'Full Meals': 10, 'Pastries': 5, 'Coffee Only': 0 },
     map: { 'Full Meals': 'Great Food', 'Pastries': 'Good Food', 'Coffee Only': 'Mod. Food' }
   },
   wifi: {
@@ -46,7 +45,7 @@ const TAG_CONFIG = {
   group: {
     label: 'Groups', icon: <Users size={12} />,
     color: 'purple', bg: 'bg-purple-100', text: 'text-purple-700', darkBg: 'dark:bg-purple-900/40', darkText: 'dark:text-purple-400', border: 'border-purple-200 dark:border-purple-800',
-    levels: { 'Good for Groups': 10, 'Best for Pairs': 5, 'Solo Only': 0 }, // Higher = Bigger Groups
+    levels: { 'Good for Groups': 10, 'Best for Pairs': 5, 'Solo Only': 0 },
     map: { 'Good for Groups': '> 5 ppl', 'Best for Pairs': '3-4 ppl', 'Solo Only': '1-2 ppl' }
   },
   price: {
@@ -619,7 +618,7 @@ const InfoRow = ({ icon, label, val }) => (
 const RequestModal = ({ onClose }) => {
   const [city, setCity] = useState('');
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState('idle'); // idle, submitting, success, error
+  const [status, setStatus] = useState('idle');
   const [debugError, setDebugError] = useState('');
 
   const handleSubmit = async (e) => {

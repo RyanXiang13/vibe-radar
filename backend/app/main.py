@@ -4,11 +4,6 @@ from pydantic import BaseModel
 from typing import List, Optional
 import os
 import psycopg2
-# Imports cleaned up
-# Note: we are NOT importing pool because we are not using it.
-
-
-
 from contextlib import contextmanager
 from psycopg2.extras import RealDictCursor
 import requests
@@ -16,12 +11,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 app = FastAPI()
-
-# DEBUG: Prove deployment version
-@app.get("/version")
-def get_version():
-    return {"version": "v1.1-debug-db-error"}
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -48,7 +37,7 @@ def get_coordinates_from_address(address: str):
 class Vibe(BaseModel):
     summary: Optional[str]
     vibe_tags: Optional[List[str]]
-    best_for: Optional[List[str]] # <--- This was missing in the extractor below
+    best_for: Optional[List[str]]
     
     noise_level: Optional[str]
     wifi_quality: Optional[str]
@@ -80,7 +69,7 @@ class CityRequest(BaseModel):
     email: Optional[str] = None
 
 
-# No Pool - Simple connection for reliability
+# Database Connection
 def get_db_connection():
     try:
         conn = psycopg2.connect(DATABASE_URL)
@@ -110,7 +99,7 @@ def get_nearby_cafes(address: Optional[str] = Query(None), lat: Optional[float] 
     try:
         with get_db_cursor() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-                # Query selects v.* so 'best_for' is definitely retrieved from DB
+
                 query = """
                 SELECT 
                     p.id, p.name, p.address, p.rating, p.price_level,
