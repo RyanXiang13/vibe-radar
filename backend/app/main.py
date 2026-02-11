@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from typing import List, Optional
 import os
 import psycopg2
+from psycopg2 import pool
+
 
 from contextlib import contextmanager
 from psycopg2.extras import RealDictCursor
@@ -11,7 +13,14 @@ import requests
 from dotenv import load_dotenv
 
 load_dotenv()
+load_dotenv()
 app = FastAPI()
+
+# DEBUG: Prove deployment version
+@app.get("/version")
+def get_version():
+    return {"version": "v1.1-debug-db-error"}
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -73,7 +82,7 @@ class CityRequest(BaseModel):
 # Initialize Connection Pool
 POOL_ERROR = None
 try:
-    postgreSQL_pool = psycopg2.pool.ThreadedConnectionPool(
+    postgreSQL_pool = pool.ThreadedConnectionPool(
         minconn=1,
         maxconn=20,
         dsn=DATABASE_URL
