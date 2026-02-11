@@ -620,10 +620,12 @@ const RequestModal = ({ onClose }) => {
   const [city, setCity] = useState('');
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('idle'); // idle, submitting, success, error
+  const [debugError, setDebugError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('submitting');
+    setDebugError('');
 
     // Use VITE_API_URL if defined, otherwise default to localhost relative
     const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -639,10 +641,13 @@ const RequestModal = ({ onClose }) => {
         setStatus('success');
         setTimeout(onClose, 2000);
       } else {
+        const txt = await res.text();
+        setDebugError(`Server Error (${res.status}): ${txt}`);
         setStatus('error');
       }
     } catch (err) {
       console.error(err);
+      setDebugError(`Network Error: ${err.message} (Target: ${API_BASE}/requests)`);
       setStatus('error');
     }
   };
@@ -706,7 +711,10 @@ const RequestModal = ({ onClose }) => {
             </button>
 
             {status === 'error' && (
-              <p className="text-center text-rose-500 text-xs font-bold">Something went wrong. Try again.</p>
+              <div className="text-center text-rose-500 text-xs font-bold bg-rose-50 dark:bg-rose-900/20 p-2 rounded-lg">
+                <p>Something went wrong.</p>
+                <p className="font-mono mt-1 text-[10px] break-all">{debugError}</p>
+              </div>
             )}
           </form>
         )}

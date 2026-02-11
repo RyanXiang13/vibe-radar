@@ -71,6 +71,7 @@ class CityRequest(BaseModel):
 
 
 # Initialize Connection Pool
+POOL_ERROR = None
 try:
     postgreSQL_pool = psycopg2.pool.ThreadedConnectionPool(
         minconn=1,
@@ -80,12 +81,13 @@ try:
     print("✅ Database Connection Pool Created")
 except Exception as e:
     print(f"❌ Error creating pool: {e}")
+    POOL_ERROR = str(e)
     postgreSQL_pool = None
 
 @contextmanager
 def get_db_connection():
     if not postgreSQL_pool:
-        raise HTTPException(500, "Database pool not initialized")
+        raise HTTPException(500, f"Database pool not initialized. Startup Error: {POOL_ERROR}")
     
     conn = postgreSQL_pool.getconn()
     try:
