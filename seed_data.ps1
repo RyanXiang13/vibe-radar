@@ -29,3 +29,35 @@ Write-Host "📍 Mining Austin: South Congress..." -ForegroundColor White
 python backend/scripts/miner.py "Coffee shops South Congress Austin" 20
 
 Write-Host "✅ MISSION COMPLETE! US Tech Hubs Mined." -ForegroundColor Green
+
+# --- UNIVERSITIES ---
+Write-Host "🎓 Mining Universities..." -ForegroundColor Cyan
+
+Write-Host "📍 Mining Harvard..."
+python backend/scripts/miner.py "Study cafes near Harvard Square Cambridge" 20
+
+Write-Host "📍 Mining MIT..."
+python backend/scripts/miner.py "Laptop friendly cafes near MIT Cambridge" 20
+
+Write-Host "📍 Mining Stanford..."
+python backend/scripts/miner.py "Study spots near Stanford University Palo Alto" 20
+
+Write-Host "📍 Mining UC Berkeley..."
+python backend/scripts/miner.py "Cafes near UC Berkeley campus" 20
+
+Write-Host "📍 Mining UCLA..."
+python backend/scripts/miner.py "Study spots near UCLA Westwood" 20
+
+Write-Host "📍 Mining Columbia..."
+python backend/scripts/miner.py "Cafes near Columbia University NYC" 20
+
+Write-Host "📍 Mining NYU..."
+python backend/scripts/miner.py "Study cafes near NYU Washington Square Park" 20
+
+Write-Host "📍 Mining UT Austin..."
+python backend/scripts/miner.py "Coffee shops near UT Austin campus" 20
+
+Write-Host "📍 Mining UW Seattle..."
+python backend/scripts/miner.py "Study spots near University of Washington Seattle" 20
+
+Write-Host "🎓 University Mining Complete!" -ForegroundColor Green

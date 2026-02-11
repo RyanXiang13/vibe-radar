@@ -418,13 +418,13 @@ function App() {
           })}
         </div>
 
-        {/* FOOTER - REQUEST CITY */}
+        {/* FOOTER - REQUEST PLACE */}
         <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-20">
           <button
             onClick={() => setIsRequestModalOpen(true)}
             className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold text-xs hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-white hover:border-indigo-300 dark:hover:border-indigo-500 transition-all"
           >
-            🚀 Don't see your city? Request it.
+            🚀 No cafes near you? Request a place.
           </button>
         </div>
       </div>
@@ -657,18 +657,17 @@ const RequestModal = ({ onClose }) => {
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl p-6 relative border border-slate-100 dark:border-slate-800"
-      >
-        <button onClick={onClose} className="absolute right-4 top-4 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400">
-          <X size={20} />
-        </button>
+        className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl p-6 relative border border-slate-100 dark:border-slate-800 m-4">
+        <button onClick={onClose} className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X size={20} /></button>
 
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center mx-auto mb-3">
+        <div className="mb-6">
+          <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-4">
             <MapIcon size={24} />
           </div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Request a City</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Help us decide where to drop Vibe Radar next!</p>
+          <h2 className="text-xl font-black text-slate-900 dark:text-white mb-2">Request a Location</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Don't see cafes in your area? Let us know where we should expand next.
+          </p>
         </div>
 
         {status === 'success' ? (
@@ -680,16 +679,15 @@ const RequestModal = ({ onClose }) => {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Which City?</label>
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">City or Neighborhood</label>
               <input
-                required
                 value={city}
-                onChange={e => setCity(e.target.value)}
-                placeholder="e.g. Austin, TX"
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="e.g. UBC Campus, Vancouver"
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                required
               />
             </div>
-
             <div>
               <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Email <span className="opacity-50 font-normal normal-case">(Optional - for notify)</span></label>
               <input
