@@ -90,6 +90,7 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMobileMapOpen, setIsMobileMapOpen] = useState(false);
   const [showClear, setShowClear] = useState(false);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
 
   const [activePurpose, setActivePurpose] = useState('all');
   const [activePreferences, setActivePreferences] = useState([]);
@@ -420,14 +421,21 @@ function App() {
 
         {/* FOOTER - REQUEST CITY */}
         <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-20">
-          <a
-            href="mailto:xiangryan13@gmail.com?subject=Vibe%20Radar%20City%20Request&body=I%20want%20Vibe%20Radar%20in..."
+          <button
+            onClick={() => setIsRequestModalOpen(true)}
             className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold text-xs hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-white hover:border-indigo-300 dark:hover:border-indigo-500 transition-all"
           >
             🚀 Don't see your city? Request it.
-          </a>
+          </button>
         </div>
       </div>
+
+      {/* REQUEST MODAL */}
+      <AnimatePresence>
+        {isRequestModalOpen && (
+          <RequestModal onClose={() => setIsRequestModalOpen(false)} />
+        )}
+      </AnimatePresence>
 
       {/* DETAIL PANEL */}
       <AnimatePresence>
@@ -607,5 +615,105 @@ const InfoRow = ({ icon, label, val }) => (
     <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">{val}</p>
   </div>
 );
+
+const RequestModal = ({ onClose }) => {
+  const [city, setCity] = useState('');
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState('idle'); // idle, submitting, success, error
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus('submitting');
+
+    // Use VITE_API_URL if defined, otherwise default to localhost relative
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+    try {
+      const res = await fetch(`${API_BASE}/requests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ city, email })
+      });
+
+      if (res.ok) {
+        setStatus('success');
+        setTimeout(onClose, 2000);
+      } else {
+        setStatus('error');
+      }
+    } catch (err) {
+      console.error(err);
+      setStatus('error');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl p-6 relative border border-slate-100 dark:border-slate-800"
+      >
+        <button onClick={onClose} className="absolute right-4 top-4 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400">
+          <X size={20} />
+        </button>
+
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center mx-auto mb-3">
+            <MapIcon size={24} />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Request a City</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Help us decide where to drop Vibe Radar next!</p>
+        </div>
+
+        {status === 'success' ? (
+          <div className="text-center py-8">
+            <div className="text-emerald-500 text-5xl mb-4">✨</div>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Request Received!</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">We'll let you know when we launch in {city}.</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Which City?</label>
+              <input
+                required
+                value={city}
+                onChange={e => setCity(e.target.value)}
+                placeholder="e.g. Austin, TX"
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Email <span className="opacity-50 font-normal normal-case">(Optional - for notify)</span></label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-medium text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              />
+            </div>
+
+            <button
+              disabled={status === 'submitting'}
+              type="submit"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/20 active:scale-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+            >
+              {status === 'submitting' ? <><Hourglass size={18} className="animate-spin" /> Sending...</> : 'Send Request 🚀'}
+            </button>
+
+            {status === 'error' && (
+              <p className="text-center text-rose-500 text-xs font-bold">Something went wrong. Try again.</p>
+            )}
+          </form>
+        )}
+      </motion.div>
+    </div>
+  );
+};
+
 
 export default App;

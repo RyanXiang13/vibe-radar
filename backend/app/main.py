@@ -65,6 +65,10 @@ class CafeResponse(BaseModel):
     vibes: Optional[Vibe]
     distance_km: Optional[float]
 
+class CityRequest(BaseModel):
+    city: str
+    email: Optional[str] = None
+
 
 # Initialize Connection Pool
 try:
@@ -147,4 +151,19 @@ def get_nearby_cafes(address: Optional[str] = Query(None), lat: Optional[float] 
                 return results
     except Exception as e:
         print(f"API Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/requests")
+def submit_request(req: CityRequest):
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO city_requests (city, email) VALUES (%s, %s)", 
+                    (req.city, req.email)
+                )
+                conn.commit()
+        return {"status": "success", "message": "Request received"}
+    except Exception as e:
+        print(f"Request Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
