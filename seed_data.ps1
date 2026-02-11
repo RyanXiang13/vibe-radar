@@ -60,4 +60,4 @@ python backend/scripts/miner.py "Coffee shops near UT Austin campus" 20
 Write-Host "📍 Mining UW Seattle..."
 python backend/scripts/miner.py "Study spots near University of Washington Seattle" 20
 
-Write-Host "🎓 University Mining Complete!" -ForegroundColor Green
+Write-Host "[!] University Mining Complete!" -ForegroundColor Green

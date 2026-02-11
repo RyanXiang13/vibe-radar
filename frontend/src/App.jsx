@@ -683,7 +683,7 @@ const RequestModal = ({ onClose }) => {
               <input
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                placeholder="e.g. UBC Campus, Vancouver"
+                placeholder="e.g. Harvard Campus, Cambridge"
                 className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                 required
               />
