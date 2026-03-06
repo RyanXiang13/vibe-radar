@@ -277,23 +277,6 @@ async def cafe_stream_generator(request: Request, search_lat: float, search_lng:
                         place['location']['longitude'], place['location']['latitude'], 
                         place.get('rating'), price_int
                     ))
-                    
-                    new_place_id = cursor.fetchone()['id'] if isinstance(cursor.fetchone(), dict) else cursor.fetchone()[0] # RealDictCursor might return list of dicts. fetchone() returns dict if true. Wait, we use cursor.fetchone()['id']. Let's be safe. Wait actually returning a normal dict inside RealDictCursor
-                except Exception as e:
-                    print(f"DB Insert Errored {e}")
-                    # Usually meaning the RealDictCursor returns dictionary. In postgres RETURNING id with realdictcursor returns {'id': 123}
-                    pass
-
-                try:
-                    cursor.execute("""
-                        INSERT INTO places (google_place_id, name, address, location, rating, price_level)
-                        VALUES (%s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s)
-                        RETURNING id;
-                    """, (
-                        pid, name, place.get('formattedAddress'),
-                        place['location']['longitude'], place['location']['latitude'], 
-                        place.get('rating'), price_int
-                    ))
                     res = cursor.fetchone()
                     new_place_id = res['id'] if isinstance(res, dict) else res[0]
 
