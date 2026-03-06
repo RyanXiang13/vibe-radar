@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Map, { Marker, NavigationControl } from 'react-map-gl';
-import { Coffee, Search, Zap, Plug, Volume2, Wifi, Moon, Sun, Clock, Users, ExternalLink, Armchair, X, Laptop, MessageCircle, Heart, Utensils, Map as MapIcon, List, AlertTriangle, CheckCircle2, Hourglass, DollarSign } from 'lucide-react';
+import { Coffee, Search, Zap, Plug, Volume2, Wifi, Moon, Sun, Clock, Users, ExternalLink, Armchair, X, Laptop, MessageCircle, Heart, Utensils, Map as MapIcon, List, AlertTriangle, CheckCircle2, Hourglass, DollarSign, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Analytics } from '@vercel/analytics/react';
 import { fetchCafes } from './api';
@@ -84,6 +84,7 @@ function App() {
   const [userLocation, setUserLocation] = useState({ latitude: DEFAULT_LOC.lat, longitude: DEFAULT_LOC.lng });
   const [cafes, setCafes] = useState([]);
   const [selectedCafe, setSelectedCafe] = useState(null);
+  const [isRadarScanning, setIsRadarScanning] = useState(false); // Track Streaming Progress
 
   // --- GLOBAL THEME STATE ---
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -98,11 +99,59 @@ function App() {
   const searchInputRef = useRef(null);
   const mapRef = useRef(null);
 
-  // Load cafes based on the PIN location (User's "Home Base"), not just the camera center
-  // Actually, typically we want to load based on where the user is looking, but for "Vibe Radar" 
-  // usually it searches around the point of interest. 
-  // Let's stick to loading around the USER LOCATION (the pin).
-  const loadCafes = async (lat, lng) => { setCafes(await fetchCafes(lat, lng)); };
+  // Progressive Live Loading (Server-Sent Events)
+  const loadCafes = async (lat, lng) => {
+    setCafes([]); // Clear current map
+    setIsRadarScanning(true);
+    let tempCafes = [];
+
+    try {
+      const BE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+      const endpoint = `${BE_URL}/cafes?lat=${lat}&lng=${lng}&radius_km=${maxDistance}`;
+      const response = await fetch(endpoint);
+
+      if (!response.body) throw new Error("ReadableStream not supported in this browser.");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        // The SSE chunk might contain multiple "data: { ... }\n\n" blocks if buffered
+        const events = chunk.split('\n\n').filter(Boolean);
+
+        for (const event of events) {
+          if (event.startsWith("event: done")) {
+            break;
+          }
+          if (event.startsWith("data: ")) {
+            try {
+              const dataStr = event.replace("data: ", "").trim();
+              const cafeData = JSON.parse(dataStr);
+
+              if (!cafeData.error && cafeData.id !== -1) {
+                // We append manually since React state updates might batch/overwrite if we do it too fast
+                tempCafes.push(cafeData);
+              }
+            } catch (e) {
+              // JSON parsing failed for this chunk (might be incomplete chunk buffer, though rare for small objects in SSE)
+              console.log("JSON Parse err on chunk", e, event);
+            }
+          }
+        }
+
+        // Update React State immediately as chunks arrive to "Pop" them on the map
+        setCafes([...tempCafes]);
+      }
+    } catch (err) {
+      console.error("Stream Fetch Error:", err);
+    } finally {
+      setIsRadarScanning(false);
+    }
+  };
 
   // Auto-Detect Location on Load
   useEffect(() => {
@@ -363,6 +412,15 @@ function App() {
 
         {/* LIST */}
         <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 space-y-3 transition-colors">
+
+          {/* Radar Scanning Indicator (Stream is active) */}
+          {isRadarScanning && (
+            <div className="py-3 px-3 mb-2 bg-indigo-50 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 rounded-2xl border border-indigo-200 dark:border-indigo-700 shadow flex items-center gap-2 animate-pulse justify-center">
+              <Activity size={18} className="animate-spin-slow" />
+              <span className="text-sm font-bold">Scanning Area...</span>
+            </div>
+          )}
+
           {filtered.map(c => {
             // High Score Logic: >= 80% or perfection OR Default High Rating (>= 4.8) if no prefs
             const isHighMatch = activePreferences.length > 0
@@ -579,6 +637,7 @@ function App() {
           )}
         </button>
       </div>
+
     </div>
   );
 }
@@ -665,9 +724,15 @@ const RequestModal = ({ onClose }) => {
             <MapIcon size={24} />
           </div>
           <h2 className="text-xl font-black text-slate-900 dark:text-white mb-2">Request a Location</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
             Don't see cafes in your area? Let us know where we should expand next.
           </p>
+          <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700/50">
+            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">📍 Currently Covered</p>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+              San Francisco, New York City, Seattle, Austin, Toronto, Waterloo, and major US Campuses.
+            </p>
+          </div>
         </div>
 
         {status === 'success' ? (
