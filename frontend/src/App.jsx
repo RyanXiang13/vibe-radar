@@ -423,9 +423,11 @@ function App() {
 
           {filtered.map(c => {
             // High Score Logic: >= 80% or perfection OR Default High Rating (>= 4.8) if no prefs
+            // Fallback rating to 0 if not present (e.g. brand new cafe without rating)
+            const safeRating = c.rating || 0;
             const isHighMatch = activePreferences.length > 0
               ? c.searchScore >= (maxPossibleScore * 0.8)
-              : c.rating >= 4.8; // STRICTER THRESHOLD (Was 4.5)
+              : safeRating >= 4.5; // Change threshold back to 4.5 to allow more new cafes to show
 
             return (
               <div key={c.id} onClick={() => flyToCafe(c)}
@@ -592,9 +594,10 @@ function App() {
           </Marker>
 
           {filtered.map(c => {
+            const safeRating = c.rating || 0;
             const isHighMatch = activePreferences.length > 0
               ? c.searchScore >= (maxPossibleScore * 0.8)
-              : c.rating >= 4.8;
+              : safeRating >= 4.5;
 
             return (
               <Marker key={c.id} latitude={c.lat} longitude={c.lng} onClick={e => { e.originalEvent.stopPropagation(); flyToCafe(c) }}>
