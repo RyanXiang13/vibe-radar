@@ -106,7 +106,7 @@ function App() {
     let tempCafes = [];
 
     try {
-      const BE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+      const BE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       const endpoint = `${BE_URL}/cafes?lat=${lat}&lng=${lng}&radius_km=${maxDistance}`;
       const response = await fetch(endpoint);
 
