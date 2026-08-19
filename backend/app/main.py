@@ -20,6 +20,7 @@ MAPS_KEY = os.getenv("GMAPS_KEY")
 AI_KEY = os.getenv("GEMINI_API_KEY")
 AI_MODEL_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent"
 DATABASE_URL = os.getenv("DATABASE_URL")
+MIN_CACHED_RESULTS = 15  # Skip live Google/Gemini mining if we already have at least this many cached cafes nearby
 
 app.add_middleware(
     CORSMiddleware,
@@ -255,10 +256,9 @@ async def cafe_stream_generator(request: Request, search_lat: float, search_lng:
         conn.close()
         return
 
-    # 2. Yield Dynamic Google/Gemini Cafes
-    if len(cached_ids) < limit:
-        remaining = limit - len(cached_ids)
-        print(f"📡 Requesting Google Places Search... (Need {remaining} more)")
+    # 2. Yield Dynamic Google/Gemini Cafes (only when cache is thin nearby)
+    if len(cached_ids) < MIN_CACHED_RESULTS:
+        print(f"📡 Only {len(cached_ids)} cached nearby (< {MIN_CACHED_RESULTS}), requesting Google Places Search...")
         
         google_places = search_google_places(search_lat, search_lng, radius_km, max_count=20)
         
