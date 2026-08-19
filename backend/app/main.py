@@ -18,7 +18,7 @@ app = FastAPI()
 # --- CONFIGURATION for AI & Maps ---
 MAPS_KEY = os.getenv("GMAPS_KEY")
 AI_KEY = os.getenv("GEMINI_API_KEY")
-AI_MODEL_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+AI_MODEL_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent"
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 app.add_middleware(
