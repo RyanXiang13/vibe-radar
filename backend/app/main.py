@@ -54,7 +54,9 @@ def get_all_reviews_text(reviews_list):
 
 def get_vibe_from_ai(reviews_list):
     review_context = get_all_reviews_text(reviews_list)
-    if not review_context: return None
+    if not review_context:
+        print(f"AI Skip: No usable review text ({len(reviews_list or [])} raw reviews from Places API)")
+        return None
 
     prompt_text = f"""
     Analyze these user reviews for a Study Spot App.
