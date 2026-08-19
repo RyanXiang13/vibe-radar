@@ -86,6 +86,10 @@ def get_vibe_from_ai(reviews_list):
     headers = {"Content-Type": "application/json"}
     data = {"contents": [{"parts": [{"text": prompt_text}]}]}
     
+    if not AI_KEY:
+        print("AI Error: GEMINI_API_KEY is not set")
+        return None
+
     for attempt in range(3):
         try:
             response = requests.post(f"{AI_MODEL_URL}?key={AI_KEY}", headers=headers, json=data, timeout=15)
@@ -94,13 +98,22 @@ def get_vibe_from_ai(reviews_list):
                 if 'candidates' in result:
                     raw_text = result['candidates'][0]['content']['parts'][0]['text']
                     clean_json = raw_text.replace("```json", "").replace("```", "").strip()
-                    parsed = json.loads(clean_json)
+                    try:
+                        parsed = json.loads(clean_json)
+                    except json.JSONDecodeError as e:
+                        print(f"AI JSON Parse Error: {e} - Raw: {raw_text[:500]}")
+                        continue
                     if isinstance(parsed, list) and len(parsed) > 0:
                         return parsed[0]
                     elif isinstance(parsed, dict):
                         return parsed
+                else:
+                    print(f"AI Response Missing Candidates: {result}")
             elif response.status_code == 429:
-                 time.sleep(3)
+                print(f"AI Rate Limited (attempt {attempt + 1}/3), retrying...")
+                time.sleep(3)
+            else:
+                print(f"AI Request Failed: {response.status_code} - {response.text[:500]}")
         except Exception as e:
             print(f"AI Exception: {e}")
     return None
